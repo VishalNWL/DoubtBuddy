@@ -1,0 +1,20 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "This is a an interface through students can ask doubts directly with their respective teachers",
+  "homepage": "https://github.com/VishalNWL/DoubtBuddy#readme",
+  "bugs": {
+    "url": "https://github.com/VishalNWL/DoubtBuddy/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VishalNWL/DoubtBuddy.git"
+  },
+  "license": "ISC",
+  "author": "Vishal Nemiwal",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
