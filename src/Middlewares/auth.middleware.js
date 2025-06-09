@@ -1,0 +1,31 @@
+import {ApiError} from "../Utils/Apierrors"
+import {asyncHandler} from "../Utils/asyncHandler"
+import jwt from "jsonwebtoken"
+import { User } from "../Models/user.model.js"
+
+
+const jwtverify= asyncHandler(async (req,_ , next)=>{
+     try {
+        const token= req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
+
+        if(!token){
+           throw new  ApiError(400, "Unauthorized Access");
+        }
+
+        const decodedToken= jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        const user= User.findbyId(decodedToken?._Id).select("-password -refreshToken");
+
+        if(!user){
+            throw new ApiError(404,"Invalid user");
+        }
+
+        req.user=user;
+        next();
+
+     } catch (error) {
+        console.log(error.message);
+        throw new ApiError(500,"Something went wrong while jwt verify");
+     }
+})
+
+export default jwtverify;
