@@ -1,4 +1,6 @@
 import mongoose, {Schema} from 'mongoose'
+import bcrypt from "bcrypt";
+
 
 const userSchema = new Schema({
   username: {
@@ -28,7 +30,7 @@ const userSchema = new Schema({
   avatar: {
     type: String,//coudinary url
     required: function () {
-      return this.role !== 'admin';
+      return this.role !== 'teacher';
     }
   },
 
@@ -52,7 +54,7 @@ const userSchema = new Schema({
 
   // Student-only
   class: {
-    type: String,
+    type: Number,
     required: function () {
       return this.role === 'student';
     }
@@ -63,7 +65,7 @@ const userSchema = new Schema({
 teacherClasses: {
   type: [
     {
-      class: { type: String },
+      class: { type: Number },
       subject: [{ type: String }],
       batches: [{ type: String }]
     }

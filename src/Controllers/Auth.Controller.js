@@ -22,6 +22,7 @@ const RegisterUser=asyncHandler(async(req,res)=>{
     role,
     school,
     Class, // For students
+    batch,//for student
     teacherClasses // For teachers
   } = req.body;
 
@@ -40,7 +41,7 @@ const RegisterUser=asyncHandler(async(req,res)=>{
     throw new ApiError(500,"Some error occured while uploading on cloudinary");
   }
 
-
+   
   let userData = {
     username,
     fullname,
@@ -48,7 +49,7 @@ const RegisterUser=asyncHandler(async(req,res)=>{
     role,
     password,
     school,
-    avatarURL
+    avatar:avatarURL.url,
   };
 
   if (role === "student") {
@@ -56,6 +57,7 @@ const RegisterUser=asyncHandler(async(req,res)=>{
       throw new ApiError(400, "Class is required for students");
     }
     userData.class = Class;
+    userData.batch= batch||'A';
   }
 
   if (role === "teacher") {
@@ -71,7 +73,7 @@ const RegisterUser=asyncHandler(async(req,res)=>{
 }
 
      catch (error) {
-        throw new ApiError(500,"There is an error while registering the user");
+        throw new ApiError(500,"There is an error while registering the user  " + error.message);
     }
 })
 

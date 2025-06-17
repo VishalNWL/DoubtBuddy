@@ -1,5 +1,5 @@
 import mongoose from "mongoose"
-import { ClassInfo } from "../Models/ClassInfo.model"
+import { ClassInfo } from "../Models/ClassInfo.model.js"
 import {asyncHandler} from "../Utils/asyncHandler.js"
 import { ApiError } from "../Utils/Apierrors.js";
 import { Apiresponse } from "../Utils/Apiresponse.js";

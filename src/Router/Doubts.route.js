@@ -10,7 +10,7 @@ import {
   getAllDoubts,
   answerDoubt,
   getUnansweredDoubts
-} from "../Controllers/Doubt.Controller.js";
+} from '../Controllers/Doubts.Controller.js';
 
 import { jwtverify } from "../Middlewares/auth.middleware.js";
 import { upload } from "../Middlewares/multer.middleware.js";

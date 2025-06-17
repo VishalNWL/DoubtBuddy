@@ -1,5 +1,5 @@
-import {ApiError} from "../Utils/Apierrors"
-import {asyncHandler} from "../Utils/asyncHandler"
+import {ApiError} from "../Utils/Apierrors.js"
+import {asyncHandler} from "../Utils/asyncHandler.js"
 import jwt from "jsonwebtoken"
 import { User } from "../Models/user.model.js"
 
@@ -28,4 +28,4 @@ const jwtverify= asyncHandler(async (req,_ , next)=>{
      }
 })
 
-export default jwtverify;
+export {jwtverify};

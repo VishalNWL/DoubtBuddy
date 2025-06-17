@@ -16,14 +16,14 @@ import { ApiError } from "../Utils/Apierrors.js"
 import {Doubt} from "../Models/Doubts.model.js"
 import {uploadOnCloudinary} from "../Utils/cloudinary.js"
 import { Apiresponse } from "../Utils/Apiresponse.js"
-import {getCurrentUser} from "./Auth.Controller.js"
+import {getcurrentuser} from "./Auth.Controller.js"
 
 
 //createDoubt
 
 const createDoubt = asyncHandler(async(req,res)=>{
    try {
-     const user=getCurrentUser();
+     const user=getcurrentuser();
  
      if(!user){
          throw new ApiError(404,"User not found");
