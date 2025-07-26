@@ -1,6 +1,6 @@
 
 
-export const baseURL="http://localhost:3000"
+export const baseURL=import.meta.env.VITE_BASE_URL
 
 const SummaryAPi={
     register:{
