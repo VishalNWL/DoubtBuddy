@@ -1,25 +1,18 @@
-import dotenv from "dotenv"
-dotenv.config({
-    path:'./.env'
-})
+import dotenv from "dotenv";
+dotenv.config({ path: "./.env" });
 
-import {app} from './app.js'
-import dbconnection from './DB/index.js'
-import { v2 as cloudinary } from "cloudinary"
+import { app } from "./app.js";
+import dbconnection from "./DB/index.js";
+import { v2 as cloudinary } from "cloudinary";
+import serverless from "serverless-http"; // ✅ this is key
 
 cloudinary.config({
-   cloud_name:process.env.cloud_name, 
-   api_key:process.env.api_key, 
-   api_secret:process.env.api_secret
-})
+  cloud_name: process.env.cloud_name,
+  api_key: process.env.api_key,
+  api_secret: process.env.api_secret,
+});
 
+await dbconnection(); // ✅ wait for DB connection before serving
 
-dbconnection()
-.then(()=>{
-   app.listen(process.env.PORT,()=>{
-    console.log("Server is listening on the port ",process.env.PORT);
-   })
-})
-.catch((error)=>{
-    console.log("There is some error while connecting with database", error);
-})
+// ✅ DO NOT use app.listen() in serverless environment
+export const handler = serverless(app);
