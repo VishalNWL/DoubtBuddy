@@ -1,0 +1,9 @@
+Forget password
+Admin panel
+logout button
+edit doubt
+edit answer
+not satisfied with answer
+profile of student and teacher
+edit profile
+Fixing bugs
