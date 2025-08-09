@@ -6,6 +6,8 @@ import { config } from "dotenv";
 config({ path: "./.env" });
 const app = express();
 
+console.log("Frontend URL from env:", process.env.FrontEndURL);
+
 const allowedOrigins = [process.env.FrontEndURL];
 
 const corsOptions = {
