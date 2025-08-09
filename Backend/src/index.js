@@ -12,7 +12,14 @@ cloudinary.config({
   api_secret: process.env.api_secret,
 });
 
-await dbconnection(); // ✅ wait for DB connection before serving
-
-// ✅ DO NOT use app.listen() in serverless environment
-export const handler = serverless(app);
+(async () => {
+  try {
+    await dbconnection(); // ✅ wait for DB connection before serving
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error("❌ Failed to connect to DB:", err);
+    process.exit(1);
+  }
+})();
