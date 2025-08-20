@@ -9,32 +9,33 @@ const app = express();
 
 console.log("Frontend URL from env:", process.env.FRONTEND_URL);
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://doubt-buddy.vercel.app",
-  "https://doubt-buddy-mo9f.vercel.app"
-];
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://doubt-buddy.vercel.app",
+      "https://doubt-buddy-mo9f.vercel.app"
+      ,
+      /\.vercel\.app$/, // allow preview deployments
+    ],
+    credentials: true,
+    allowedHeaders: ["Authorization", "Content-Type"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  })
+);
 
-const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow no-origin requests (like from curl or server-to-server)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log(`❌ CORS blocked for origin: ${origin}`);
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-};
+// ✅ Handle preflight requests
+app.options("*", cors());
 
+// ✅ Then apply helmet, but disable conflicting policies
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
-app.use(cors(corsOptions));
-app.use(helmet({
-    crossOriginResourcePolicy:false
-}))
-
-app.options("*", cors({ origin: /\.vercel\.app$/, credentials: true }));
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("Public"));
