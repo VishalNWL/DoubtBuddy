@@ -8,7 +8,11 @@ const app = express();
 
 console.log("Frontend URL from env:", process.env.FRONTEND_URL);
 
-const allowedOrigins = [process.env.FRONTEND_URL];
+const allowedOrigins = [
+  "http://localhost:5173",                   // dev
+  "https://doubt-buddy.vercel.app",          // main prod
+  "https://doubt-buddy-mo9f.vercel.app"      // preview deployment
+];
 
 const corsOptions = {
   origin: (origin, callback) => {
