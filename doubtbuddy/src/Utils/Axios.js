@@ -1,42 +1,44 @@
-import axios from 'axios'
-import SummaryAPi, { baseURL } from '../Common/SummaryApi'
+import axios from "axios";
+import SummaryAPi, { baseURL } from "../Common/SummaryApi";
 
 const Axios = axios.create({
   baseURL: baseURL,
-  withCredentials: true,
-})
+});
 
 // Attach access token to every request
-Axios.interceptors.request.use((config) => {
-  const accessToken = localStorage.getItem('accesstoken')
-  if (accessToken) {
-    config.headers.Authorization = `Bearer ${accessToken}`
-  }
-  return config
-}, (error) => Promise.reject(error))
+Axios.interceptors.request.use(
+  (config) => {
+    const accessToken = localStorage.getItem("accesstoken");
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-// Handle expired access token on response
+// Handle expired access token
 Axios.interceptors.response.use(
   (response) => response,
   async (error) => {
-    let originalRequest = error.config
+    const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
+      originalRequest._retry = true;
 
-      const refreshToken = localStorage.getItem('refreshtoken')
+      const refreshToken = localStorage.getItem("refreshtoken");
       if (refreshToken) {
-        const newAccessToken = await refreshAccessToken(refreshToken)
+        const newAccessToken = await refreshAccessToken(refreshToken);
         if (newAccessToken) {
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
-          return Axios(originalRequest)
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return Axios(originalRequest);
         }
       }
     }
 
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
-)
+);
 
 const refreshAccessToken = async (refreshToken) => {
   try {
@@ -44,15 +46,14 @@ const refreshAccessToken = async (refreshToken) => {
       ...SummaryAPi.refreshToken,
       baseURL,
       headers: { Authorization: `Bearer ${refreshToken}` },
-      withCredentials: true
-    })
-    const accessToken = response.data.data.accessToken
-    localStorage.setItem('accesstoken', accessToken)
-    return accessToken
+    });
+    const accessToken = response.data.data.accessToken;
+    localStorage.setItem("accesstoken", accessToken);
+    return accessToken;
   } catch (error) {
-    console.error("Failed to refresh token", error)
-    return null
+    console.error("Failed to refresh token", error);
+    return null;
   }
-}
+};
 
-export default Axios
+export default Axios;
