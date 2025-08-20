@@ -10,6 +10,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime'
 import Axios from '../Utils/Axios';
 import SummaryAPi from '../Common/SummaryApi';
+import UploadImage from '../Utils/UploadImage';
 
 dayjs.extend(relativeTime);
 
@@ -27,6 +28,7 @@ function Solvedoubt() {
   const [filetype,setfiletype]=useState('');
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadFileURL,setUploadFileURL]= useState("")
 
 
   const queryParams = new URLSearchParams(location.search);
@@ -34,7 +36,7 @@ function Solvedoubt() {
   const title = queryParams.get("title") || "Sir, how can we calculate speed of light without having an expensive instrument.";
 
 
-  const handleChange = (e) => {
+  const handleChange =async (e) => {
    const selectedfile=e.target.files[0];
 
      if(!selectedfile)return ;
@@ -44,17 +46,16 @@ function Solvedoubt() {
     
     setfiletype('photo')
     // Handle audio file
-  } else if (selectedfile.type.startsWith("video/")) {
-  
-    setfiletype('video');
-    // Handle video file
-  } else {
-    alert("Only photo and video files are allowed.");
+  }  else {
+    alert("Only photos are allowed.");
   }
+
+  const uploadfile = await UploadImage(selectedfile);
+  setUploadFileURL(uploadfile);
 
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = async(e) => {
   e.preventDefault();
   const droppedFile = e.dataTransfer.files[0];
   if (!droppedFile) return;
@@ -63,46 +64,43 @@ function Solvedoubt() {
 
   if (droppedFile.type.startsWith("image/")) {
     setfiletype("photo");
-  } else if (droppedFile.type.startsWith("video/")) {
-    setfiletype("video");
-  } else {
-    alert("Only image and video files are allowed.");
+  }  else {
+    alert("Only images are allowed.");
     setFile(null);
     setfiletype("");
   }
+  const uploadfile = await UploadImage(droppedFile);
+  setUploadFileURL(uploadfile);
 };
+
+
 
 const handleUpload = async () => {
   if (!file && !anstxt) return;
 
   setLoading(true);
 
-  const formData = new FormData();
-
-  if (file && filetype === "photo") {
-    formData.append("answerPhoto", file);
-  } else if (file && filetype === "video") {
-    formData.append("answerVideo", file);
-  }
-
-  formData.append("answerText", anstxt);
-  formData.append("status", "answered");
-  formData.append("answeredBy", idt);
-  formData.append('doubtId',id)
- 
   try {
+  
     const res = await Axios({
       ...SummaryAPi.submitAnswer,
-      data:formData
-    })
+      data: {
+        answerPhoto:uploadFileURL,
+        answerText: anstxt,
+        status: "answered",
+        answeredBy: idt,
+        doubtId: id,
+      },
+    });
 
-    if(res.data.success){
+    if (res.data.success) {
       alert("Answer Submitted Successfully");
       setanstxt("");
-
-    }
-    else{
-      alert("There is some problem while uploading the doubt")
+      setFile(null);
+      setfiletype("");
+      setUploadFileURL("");
+    } else {
+      alert("There is some problem while uploading the doubt");
     }
   } catch (err) {
     alert("Error occurred during upload.");
@@ -110,6 +108,7 @@ const handleUpload = async () => {
     setLoading(false);
   }
 };
+
 
 
   useEffect(() => {
@@ -149,7 +148,7 @@ const handleUpload = async () => {
 
         {
           questionphoto &&
-          <> <Button className='rounded-sm p-2 bg-slate-500 mt-4 hover:bg-slate-600'><FaPaperclip className='inline-block mr-2' onClick={() => { setopen(true) }} />See Attachment</Button>
+          <> <Button className='rounded-sm p-2 bg-slate-500 mt-4 hover:bg-slate-600'  onClick={() => { setopen(true) }} ><FaPaperclip className='inline-block mr-2'/>See Attachment</Button>
 
             <Lightbox
               open={open}

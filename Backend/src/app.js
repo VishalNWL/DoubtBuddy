@@ -45,10 +45,12 @@ app.use(cookieParser());
 import authRouter from "./Router/Auth.route.js";
 import classInfoRouter from "./Router/Classinfo.route.js";
 import doubtsRouter from "./Router/Doubts.route.js";
+import uploadRouter from "./Router/upload.route.js";
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/classinfo", classInfoRouter);
 app.use("/api/v1/doubts", doubtsRouter);
+app.use('/api/file',uploadRouter)
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });

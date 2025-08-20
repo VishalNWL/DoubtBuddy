@@ -68,6 +68,10 @@ const SummaryAPi = {
     uploadAvatar:{
         url:'/api/v1/auth/update-avatar',
         method:"post"
+    },
+    uploadfile:{
+        url:'/api/file/upload',
+        method:'post'
     }
 }
 

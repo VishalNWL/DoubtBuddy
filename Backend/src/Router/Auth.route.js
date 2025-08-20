@@ -58,7 +58,6 @@ router
   .route("/update-avatar")
   .post(
     jwtverify,
-    upload.fields([{ name: "avatar", maxCount: 1 }]),
     updateAvatar
   );
 

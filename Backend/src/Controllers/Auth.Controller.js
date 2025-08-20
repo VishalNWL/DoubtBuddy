@@ -206,19 +206,12 @@ const changePassword = asyncHandler(async (req, res) => {
 });
 
 const updateAvatar = asyncHandler(async (req, res) => {
-  const avatarLocalPath = req.files?.avatar[0]?.path;
-  if (!avatarLocalPath) {
-    return res.status(400).json(new Apiresponse(400, {}, "Avatar is missing"));
-  }
+  const {avatar} = req.body;
 
-  const avatar = await uploadOnCloudinary(avatarLocalPath);
-  if (!avatar?.url) {
-    return res.status(400).json(new Apiresponse(400, {}, "Cloudinary upload failed"));
-  }
-
+   console.log("this is avatar",avatar)
   const user = await User.findByIdAndUpdate(
     req.user._id,
-    { $set: { avatar: avatar.url } },
+    { $set: { avatar: avatar } },
     { new: true }
   ).select("-password");
 

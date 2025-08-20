@@ -7,6 +7,8 @@ import { FaUserCircle } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux'
 import { MdModeEdit } from "react-icons/md";
 import { IoClose } from "react-icons/io5";
+import UploadImage from '../Utils/UploadImage';
+import {login, logout} from "../store/authSlice"
 
 function Profile() {
   const user=useSelector(state=>state.auth).userData;
@@ -42,12 +44,17 @@ function Profile() {
       alert("File size must be under 2MB");
       return;
     }
-      let formData = new FormData();
-     formData.append("avatar", file);
+    const avatar = await UploadImage(file);
+    console.log(avatar)
+      if(!avatar){
+        alert("There is some error while uploading avatar");
+        return;
+      }
+      
 
     const response = await Axios({
       ...SummaryAPi.uploadAvatar,
-      data:formData
+       data: { avatar }
     })
 
     if(response.data.success){

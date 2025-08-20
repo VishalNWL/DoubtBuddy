@@ -32,24 +32,24 @@ const createDoubt = asyncHandler(async (req, res) => {
 
     const student = await User.findById(user._id);
 
-    const { questionDescription, subject, title } = req.body;
+    const { questionDescription, subject, title,questionPhoto } = req.body;
 
-    const questionfilepath = req.file?.path;
+    // const questionfilepath = req.file?.path;
 
-    let questionfile = '';
-    if (questionfilepath) {
-      questionfile = await uploadOnCloudinary(questionfilepath);
-    }
+    // let questionfile = '';
+    // if (questionfilepath) {
+    //   questionfile = await uploadOnCloudinary(questionfilepath);
+    // }
 
-    if (!questionDescription && !questionfilepath) {
-      res.status(400).json(new Apiresponse(400, {}, "There is no question entered"));
-    }
+    // if (!questionDescription && !questionfilepath) {
+    //   res.status(400).json(new Apiresponse(400, {}, "There is no question entered"));
+    // }
 
     const question = await Doubt.create({
       title: title,
       studentname: user.username,
       questionDescription: questionDescription,
-      questionFile: questionfile.url,
+      questionFile: questionPhoto,
       askedBy: user._id,
       subject: subject,
       class: user.class,
@@ -287,24 +287,22 @@ const answerDoubt = asyncHandler(async (req, res) => {
 
   try {
     const user = req.user;
+  
     if (!user) {
      return res.status(400).json(new Apiresponse(400, {}, "User not logged in"));
     }
 
     const teacher = await User.findById(user._id);
 
-    const { answerText="", doubtId } = req.body;
+    const { answerText="", doubtId ,answerPhoto} = req.body;
     
 
-const answerPhotopath = req.files?.answerPhoto?.[0]?.path || "";
-const answerPhotoURL = answerPhotopath ? await uploadOnCloudinary(answerPhotopath) : "";
 
-const answerVideopath = req.files?.answerVideo?.[0]?.path || "";
-const answerVideoURL = answerVideopath ? await uploadOnCloudinary(answerVideopath) : "";
+const answerPhotoURL =answerPhoto;
 
 
-    if (!answerText && !answerPhotoURL && !answerVideoURL) {
-      return res.status(400).json(new Apiresponse(400, {answerText,answerPhotoURL,answerVideoURL}, "Answer is not valid"));
+    if (!answerText && !answerPhotoURL) {
+      return res.status(400).json(new Apiresponse(400, {answerText,answerPhotoURL}, "Answer is not valid"));
     }
 
     const updatedDoubt = await Doubt.findByIdAndUpdate(
@@ -312,8 +310,7 @@ const answerVideoURL = answerVideopath ? await uploadOnCloudinary(answerVideopat
       {
         answer: answerText,
         answerText:answerText,
-        answerPhoto: answerPhotoURL.url||"",
-        answerVideo: answerVideoURL.url||"",
+        answerPhoto: answerPhotoURL,
         answeredBy: user._id,
         status: "answered",
       },

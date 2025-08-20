@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import Axios from '../Utils/Axios';
 import SummaryAPi from '../Common/SummaryApi';
+import UploadImage from '../Utils/UploadImage';
 
 function CreateDoubt() {
   const [subject, setSubject] = useState('');
@@ -19,6 +20,7 @@ function CreateDoubt() {
   const [total,settotal] = useState(0);
   const [filetype,setfiletype]=useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadFileURL,setUploadFileURL]=useState("")
 
   const user = useSelector((state)=>state.auth).userData;
   // console.log(user)
@@ -59,19 +61,19 @@ function CreateDoubt() {
      })();
   },[])
 
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     const selected = e.target.files[0];
     if (!selected) return;
 
     if (selected.type.startsWith("image/")) {
       setFileType("photo");
-    } else if (selected.type.startsWith("video/")) {
-      setFileType("video");
-    } else {
-      alert("Only image and video files are allowed.");
+    }
+    else {
+      alert("Only image are allowed.");
       return;
     }
-
+    const uploadfile = await UploadImage(selected);
+    setUploadFileURL(uploadfile);
     setFile(selected);
   };
 
@@ -80,26 +82,27 @@ function CreateDoubt() {
       return alert("Please select a subject and provide a title.");
     }
 
-    const formData = new FormData();
-    formData.append("askedBy",user._id);
-    formData.append("subject", subject);
-    formData.append("title", title.trim());
-    formData.append("questionDescription", description.trim());
+    // const formData = new FormData();
+    // formData.append("askedBy",user._id);
+    // formData.append("subject", subject);
+    // formData.append("title", title.trim());
+    // formData.append("questionDescription", description.trim());
 
-    if (file && fileType === "photo") {
-      formData.append("questionPhoto", file);
-    } else if (file && fileType === "video") {
-      alert("File must be an image");
-      return;
-    }
+    const payload = {
+  askedBy: user._id,
+  subject,
+  title: title.trim(),
+  questionDescription: description.trim(),
+  questionPhoto: uploadFileURL, // plain URL
+};
 
     setLoading(true);
 
     try {
-      const res = await Axios({
-        ...SummaryAPi.createDoubt,
-        data:formData
-      })
+     const res = await Axios({
+  ...SummaryAPi.createDoubt,
+  data: payload
+});
 
       console.log(res)
 
@@ -165,23 +168,25 @@ function CreateDoubt() {
     setIsDragging(true);
   }}
   onDragLeave={() => setIsDragging(false)}
-  onDrop={(e) => {
+  onDrop={async(e) => {
     e.preventDefault();
     setIsDragging(false);
     const droppedFile = e.dataTransfer.files[0];
     if (!droppedFile) return;
 
     setFile(droppedFile);
+   
 
     if (droppedFile.type.startsWith("image/")) {
       setfiletype("photo");
-    } else if (droppedFile.type.startsWith("video/")) {
-      setfiletype("video");
-    } else {
-      alert("Only image and video files are allowed.");
+    }  else {
+      alert("Only image are allowed.");
       setFile(null);
       setfiletype('');
     }
+    const uploadfile = await UploadImage(droppedFile);
+    setUploadFileURL(uploadfile);
+
   }}
   onClick={() => document.getElementById("hiddenFileInput").click()}
 >

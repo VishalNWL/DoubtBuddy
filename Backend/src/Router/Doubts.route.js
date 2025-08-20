@@ -21,7 +21,7 @@ const router = Router();
 // Create a new doubt
 router
   .route("/create")
-  .post(jwtverify, upload.single("questionPhoto"), createDoubt); 
+  .post(jwtverify, createDoubt); 
 
 // Get all doubts (admin or dashboard)
 router
@@ -66,10 +66,7 @@ router
 // Answer a doubt
 router
   .route("/answer")
-  .post(jwtverify, upload.fields([
-    { name: "answerPhoto", maxCount: 1 },
-    { name: "answerVideo", maxCount: 1 }
-  ]), answerDoubt);
+  .post(jwtverify,answerDoubt);
 
 // Delete doubt
 router
