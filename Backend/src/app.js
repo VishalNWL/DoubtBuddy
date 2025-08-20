@@ -8,7 +8,7 @@ const app = express();
 
 console.log("Frontend URL from env:", process.env.FRONTEND_URL);
 
-const allowedOrigins = ['http://localhost:5173'];
+const allowedOrigins = [process.env.FRONTEND_URL];
 
 const corsOptions = {
   origin: (origin, callback) => {
