@@ -72,8 +72,8 @@ function CreateDoubt() {
       alert("Only image are allowed.");
       return;
     }
-    const uploadfile = await UploadImage(selected);
     setFile(selected);
+    const uploadfile = await UploadImage(selected);
     setUploadFileURL(uploadfile);
   };
 
