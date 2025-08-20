@@ -13,6 +13,7 @@ function Login() {
   const [error, seterror] = useState('');
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
   const { handleSubmit, register } = useForm();
   const user = useSelector((state) => state.auth).userData
 

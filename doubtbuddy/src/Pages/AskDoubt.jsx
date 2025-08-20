@@ -73,8 +73,8 @@ function CreateDoubt() {
       return;
     }
     const uploadfile = await UploadImage(selected);
-    setUploadFileURL(uploadfile);
     setFile(selected);
+    setUploadFileURL(uploadfile);
   };
 
   const handleSubmit = async () => {
@@ -96,13 +96,14 @@ function CreateDoubt() {
   questionPhoto: uploadFileURL, // plain URL
 };
 
-    setLoading(true);
+   
 
     try {
-     const res = await Axios({
-  ...SummaryAPi.createDoubt,
-  data: payload
-});
+
+    const res = await Axios({
+    ...SummaryAPi.createDoubt,
+    data: payload
+  });
 
       console.log(res)
 

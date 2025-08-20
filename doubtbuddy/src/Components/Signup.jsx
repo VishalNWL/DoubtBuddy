@@ -22,7 +22,7 @@ function Signup() {
   const signup = async (data) => {
     setError("");
     try {
-  
+ 
       console.log("This is user data",data)
       data.role= data.role.toLowerCase();
 
