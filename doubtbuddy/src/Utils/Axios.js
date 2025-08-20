@@ -9,6 +9,7 @@ const Axios = axios.create({
 Axios.interceptors.request.use(
   (config) => {
     const accessToken = localStorage.getItem("accesstoken");
+    console.log("Access token in interceptor:", accessToken); // 👈 log it
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
