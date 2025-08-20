@@ -9,9 +9,9 @@ const app = express();
 console.log("Frontend URL from env:", process.env.FRONTEND_URL);
 
 const allowedOrigins = [
-  "http://localhost:5173",                   // dev
-  "https://doubt-buddy.vercel.app",          // main prod
-  "https://doubt-buddy-mo9f.vercel.app"      // preview deployment
+  "http://localhost:5173",
+  "https://doubt-buddy.vercel.app",
+  "https://doubt-buddy-mo9f.vercel.app"
 ];
 
 const corsOptions = {
