@@ -8,11 +8,7 @@ const app = express();
 
 console.log("Frontend URL from env:", process.env.FRONTEND_URL);
 
-const allowedOrigins = [
-  "http://localhost:5173",                   // dev
-  "https://doubt-buddy.vercel.app",          // main prod
-  "https://doubt-buddy-mo9f.vercel.app"      // preview deployment
-];
+const allowedOrigins = [process.env.FRONTEND_URL];
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -27,9 +23,11 @@ const corsOptions = {
   credentials: true,
 };
 
-// ✅ Handle preflight for all routes
-app.options("*", cors(corsOptions));
+
 app.use(cors(corsOptions));
+app.use(helmet({
+    crossOriginResourcePolicy:false
+}))
 
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
