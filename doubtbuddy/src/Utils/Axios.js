@@ -9,7 +9,9 @@ const Axios = axios.create({
 //sending access token in the header
 Axios.interceptors.request.use(async(config)=>{
        const accessToken = localStorage.getItem('accesstoken')
-        console.log("This is our accesstoken",accessToken)
+
+        console.log("This is our accesstoken",accessToken);
+
          if(accessToken){
             config.headers.Authorization=`Bearer ${accessToken}`
          }
@@ -22,7 +24,7 @@ Axios.interceptors.request.use(async(config)=>{
 Axios.interceptors.request.use((response)=>{
     return response;
 } , async(error)=>{
-    let originRequest= error.config
+    let originRequest= error.config 
 
     if(error.response.status ===401 && !originRequest.retry){
         originRequest.retry=true;

@@ -10,7 +10,7 @@ import SummaryAPi from '../Common/SummaryApi';
 function Signup() {
   const [error, setError] = useState("");
   const { handleSubmit, register, watch } = useForm();
-  const user = useSelector(state=>state.auth)
+  const user = useSelector(state=>state.auth).userData
 
  
   if(user.role !== "admin"){
