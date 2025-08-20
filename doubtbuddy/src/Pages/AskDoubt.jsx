@@ -207,13 +207,17 @@ function CreateDoubt() {
       onChange={handleChange}
      />}
 
-        <Button
+        {
+          uploadFileURL && (
+            <Button
           className="w-full bg-blue-600 text-white py-2 mt-4 rounded hover:bg-blue-700"
           onClick={handleSubmit}
           disabled={loading}
         >
           {loading ? "Submitting..." : "Submit Doubt"}
         </Button>
+          )
+        }
       </div>
     </>
   );
