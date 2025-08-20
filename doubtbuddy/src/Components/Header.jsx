@@ -9,6 +9,7 @@ import { logout as authLogout } from '../store/authSlice';
 
 
 const navLinks = [
+    { href: '/', label: 'Home' },
     { href: '/profile', label: 'Profile' },
     { href: '/statistics', label: 'Statistics' },
     { href: '/discussion', label: 'Discussion' }
