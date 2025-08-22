@@ -11,7 +11,8 @@ import { BiMessageCheck  } from 'react-icons/bi'; // Font Awesome
 import { AiOutlinePlusCircle } from 'react-icons/ai';
 import Axios from '../Utils/Axios.js';
 import SummaryAPi from '../Common/SummaryApi.js';
-
+import { MdDelete } from "react-icons/md";
+import { MdEdit } from "react-icons/md";
 dayjs.extend(relativeTime);
 
 function StudentDashBoard() {
@@ -150,9 +151,10 @@ useEffect(()=>{
           }}>
             <li className='w-full bg-blue-100 hover:bg-blue-200  min-h-20 rounded-2xl list-none p-2 mt-5 shadow-md shadow-gray-400'>
               <div className='flex items-center justify-between'>
-                <span><h1 className='ml-2 p-2'><b>Title:</b>{e.title}</h1></span>
-                <span className='mr-5'>
-                  <button onClick={(event)=>{event.preventDefault();event.stopPropagation();handleDelete(e._id);}} className='border border-black px-2 rounded hover:bg-red-300'>Delete</button>
+                <span><h1 className='ml-2 p-2 line-clamp-2 lg:line-clamp-3'><b>Title:</b>{e.title}</h1></span>
+                <span className='mr-5 flex justify-between gap-3'>
+                  <button onClick={(event)=>{event.preventDefault();event.stopPropagation();handleDelete(e._id);}} className={`border border-slate-400  text-slate-600 p-2 rounded-full hover:bg-green-400 hover:text-white ${(e.status==='answered')&&'hidden'}`}><MdEdit/></button>
+                  <button onClick={(event)=>{event.preventDefault();event.stopPropagation();handleDelete(e._id);}} className='border border-slate-400  text-slate-600 p-2 rounded-full hover:bg-red-400 hover:text-white'><MdDelete/></button>
                   </span>
               </div>
               

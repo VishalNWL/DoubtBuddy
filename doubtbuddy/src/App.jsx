@@ -6,6 +6,7 @@ import { Outlet, useNavigate } from 'react-router-dom'
 import Axios from './Utils/Axios'
 import SummaryAPi from './Common/SummaryApi'
 import Header from './Components/Header'
+import {Toaster} from 'react-hot-toast'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -38,6 +39,14 @@ useEffect(() => {
     <main>
       <Header/>
          <Outlet />
+      <Toaster toastOptions={{
+        success:{
+           iconTheme:{
+            primary:'#3B82F6',
+            secondary: "#fff",
+           }
+        }
+      }}/>
         </main>
   ) : null
 }

@@ -77,7 +77,7 @@ const createDoubt = asyncHandler(async (req, res) => {
 const getDoubtsByStudent = asyncHandler(async (req, res) => {
   const student = req.body.studentId;
 
-  const doubtsbystudent = await Doubt.find({ askedBy: student });
+  const doubtsbystudent = await Doubt.find({ askedBy: student }).sort({status:1,createdAt:-1});
 
   if (!doubtsbystudent) {
     res.status(400).json(new Apiresponse(400, {}, "There is no doubt asked by this student"));

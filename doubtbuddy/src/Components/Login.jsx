@@ -6,6 +6,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useForm } from 'react-hook-form'
 import Axios from '../Utils/Axios.js'
 import SummaryAPi from '../Common/SummaryApi.js'
+import toast from 'react-hot-toast'
+import { ClipLoader } from 'react-spinners'
 
 
 
@@ -18,10 +20,12 @@ function Login() {
   const user = useSelector((state) => state.auth).userData
 
 
+
   const login = async (data) => {
     seterror("");
 
     try {
+      setLoading(true);
 
       const session = await Axios({
         ...SummaryAPi.login,
@@ -30,7 +34,7 @@ function Login() {
 
 
       if (session.data.success) {
-        alert("Successfully logged in");
+        toast.success("User Logged in Successfully");
 
         localStorage.setItem("accesstoken", session.data.data.accessToken);
         localStorage.setItem("refreshtoken", session.data.data.refreshToken);
@@ -60,6 +64,9 @@ function Login() {
 
     } catch (err) {
       seterror(err.message);
+    }
+    finally {
+      setLoading(false)
     }
   }
 
@@ -117,7 +124,15 @@ function Login() {
               })}
             />
             <Button type="submit" className="w-full `px-4 py-2 rounded-lg bg-blue-600 text-white mt-10">
-              Login
+              {loading ? 
+              <div className='flex items-center justify-center'>
+                <ClipLoader
+                  color='white'
+                  size={20}
+                />
+
+              </div> :
+                "Login"}
             </Button>
           </div>
         </form>

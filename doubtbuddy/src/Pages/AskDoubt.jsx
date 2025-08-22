@@ -6,6 +6,9 @@ import { useSelector } from 'react-redux';
 import Axios from '../Utils/Axios';
 import SummaryAPi from '../Common/SummaryApi';
 import UploadImage from '../Utils/UploadImage';
+import {Atom} from 'react-loading-indicators'
+import toast from 'react-hot-toast';
+import { ClipLoader } from "react-spinners";
 
 function CreateDoubt() {
   const [subject, setSubject] = useState('');
@@ -21,6 +24,7 @@ function CreateDoubt() {
   const [filetype,setfiletype]=useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [uploadFileURL,setUploadFileURL]=useState("")
+  const [fileUploadingLoader , setFileUploadingLoader] = useState(false);
 
   const user = useSelector((state)=>state.auth).userData;
   // console.log(user)
@@ -28,7 +32,6 @@ function CreateDoubt() {
   useEffect(()=>{
      (async ()=>{
         const Class = user.class
-        console.log(user)
         const subinfo= await Axios({
           ...SummaryAPi.getSubject,
           data: {Class}
@@ -45,7 +48,7 @@ function CreateDoubt() {
       data:{studentId:user._id}
     })
 
-    console.log(totaldoubtsbystudent)
+
 
     if(totaldoubtsbystudent.data.success){
       settotaldoubts(totaldoubtsbystudent.data.data);
@@ -69,24 +72,21 @@ function CreateDoubt() {
       setFileType("photo");
     }
     else {
-      alert("Only image are allowed.");
+      toast.error("Only image are allowed.");
       return;
     }
     setFile(selected);
+    setFileUploadingLoader(true);
     const uploadfile = await UploadImage(selected);
+    setFileUploadingLoader(false);
     setUploadFileURL(uploadfile);
   };
 
   const handleSubmit = async () => {
     if (!subject || !title.trim()) {
-      return alert("Please select a subject and provide a title.");
+      return toast.error("Please select a subject and provide a title.");
     }
 
-    // const formData = new FormData();
-    // formData.append("askedBy",user._id);
-    // formData.append("subject", subject);
-    // formData.append("title", title.trim());
-    // formData.append("questionDescription", description.trim());
 
     const payload = {
   askedBy: user._id,
@@ -100,26 +100,29 @@ function CreateDoubt() {
 
     try {
 
+      setLoading(true);
+      
+
     const res = await Axios({
     ...SummaryAPi.createDoubt,
     data: payload
   });
 
-      console.log(res)
+  
 
       if (res.data.success) {
-        alert("Doubt submitted successfully!");
+        toast.success("Doubt submitted successfully!");
         setSubject('');
         setTitle('');
         setDescription('');
         setFile(null);
         setFileType('');
       } else {
-        alert("Failed to submit doubt.");
+        toast.error("Failed to submit doubt.");
       }
     } catch (err) {
       console.error(err);
-      alert("An error occurred.");
+      toast.error("An error occurred.");
     } finally {
       setLoading(false);
     }
@@ -162,7 +165,10 @@ function CreateDoubt() {
           />
         </div>
 
-<div
+ {
+  !fileUploadingLoader ?(
+     <div>
+      <div
   className={`border-2 border-dashed ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-400'} p-6 rounded-md text-center cursor-pointer mt-4`}
   onDragOver={(e) => {
     e.preventDefault();
@@ -181,7 +187,7 @@ function CreateDoubt() {
     if (droppedFile.type.startsWith("image/")) {
       setfiletype("photo");
     }  else {
-      alert("Only image are allowed.");
+      toast.error("Only image are allowed.");
       setFile(null);
       setfiletype('');
     }
@@ -208,13 +214,28 @@ function CreateDoubt() {
      />}
 
 
+     </div>
+  ):(
+    <div>
+        <div className='flex items-center justify-center'>
+          <ClipLoader
+        color='blue'
+        loading={fileUploadingLoader}
+        size={50}
+      />
+           
+        </div>
+    </div>
+  )
+ }
           
             <Button
           className="w-full bg-blue-600 text-white py-2 mt-4 rounded hover:bg-blue-700"
           onClick={handleSubmit}
-          disabled={loading || !uploadFileURL}
+          disabled={loading || (!uploadFileURL && !description)}
         >
-          {loading ? "Submitting..." : "Submit Doubt"}
+
+          {loading ? <div className='scale-50 h-7 flex justify-center items-center'><Atom color={["#ffff"]}/></div> : "Submit Doubt"}
         </Button>
         
       </div>
