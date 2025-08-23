@@ -123,7 +123,7 @@ useEffect(()=>{
     <>
      
      <div className='flex gap-4 w-full justify-center mt-4'>
-    <span>
+    <div className='w-[43%]'>
         <Select
        placeholder={choosensubject||"Subject"}
        options={[...subject,'All']}
@@ -133,13 +133,11 @@ useEffect(()=>{
        }}
        className="w-40"
      />
-    </span>
-
-    <Button onClick={handlesearch}><FaSearch/></Button>
+    </div>
      </div>
 
 <div className='flex justify-center mt-4'>
-  <Link className='bg-gray-300 p-2 rounded-md w-[43%] pl-4 hover:bg-gray-400 flex items-center justify-between ' 
+  <Link className='bg-slate-200 p-2 rounded-md w-[43%] pl-4 hover:bg-slate-300 flex items-center justify-between ' 
    to={`/askdoubt`}
   >
   Ask

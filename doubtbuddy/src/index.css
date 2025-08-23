@@ -5,3 +5,10 @@
 @tailwind components;
 @tailwind utilities;
 
+
+@layer base {
+  body {
+    @apply text-slate-700;
+  }
+}
+

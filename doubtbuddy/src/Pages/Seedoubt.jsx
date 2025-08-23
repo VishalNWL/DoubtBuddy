@@ -56,7 +56,7 @@ function Seedoubt() {
 
   return (
     <>
-      <div className='w-full px-2 rounded'>
+      <div className='w-full px-2 rounded text-slate-700'>
         <div className='bg-blue-100 mt-2 px-2 rounded'>
           <h1 className='p-1'><b>Subject: </b>{doubt.subject}</h1>
           <hr />
@@ -77,10 +77,10 @@ function Seedoubt() {
         {issolved && <>
           <div className='flex justify-between'>
             <span><b>Answered By: </b>{teacherName}</span>
-            <span><FaClock className='inline-block mr-2 text-gray-500' />{dayjs(doubt.updatedAt).fromNow()}</span>
+            <span><FaClock className='inline-block mr-2 bg-blue-100' />{dayjs(doubt.updatedAt).fromNow()}</span>
           </div>
 
-          <div className='mt-4 bg-gray-400 p-2 px-3 rounded'>
+          <div className='mt-4 bg-blue-100 p-2 px-3 rounded'>
             <h1><b>Answer: </b>{doubt.answerText}</h1>
 
           </div>
