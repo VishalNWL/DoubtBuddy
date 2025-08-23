@@ -5,6 +5,7 @@ import { uploadOnCloudinary } from "../Utils/cloudinary.js";
 import { Apiresponse } from "../Utils/Apiresponse.js";
 import jwt from "jsonwebtoken"; // Needed for refresh token verify
 import School from '../Models/School.model.js'
+import { Doubt } from "../Models/Doubts.model.js";
 
 // Registering students and teachers from admin panel
 const RegisterUser = asyncHandler(async (req, res) => {
@@ -689,6 +690,128 @@ const changeSchoolStatus = async (req, res) => {
   }
 };
 
+const getStudentStats = asyncHandler(async (req, res) => {
+  try {
+    const studentId = req.params.id;
+
+    const doubts = await Doubt.find({ askedBy: studentId });
+
+    const totalDoubts = doubts.length;
+    const answered = doubts.filter((d) => d.status === "answered").length;
+    const pendingDoubts = totalDoubts - answered;
+
+    const accuracy = totalDoubts > 0 ? Math.round((answered / totalDoubts) * 100) : 0;
+
+    // Group total doubts by subject
+    const doubtsBySubject = doubts.reduce((acc, d) => {
+      if (!acc[d.subject]) acc[d.subject] = 0;
+      acc[d.subject]++;
+      return acc;
+    }, {});
+
+    // Group pending doubts by subject
+    const pendingBySubject = doubts.reduce((acc, d) => {
+      if (d.status !== "answered") {
+        if (!acc[d.subject]) acc[d.subject] = 0;
+        acc[d.subject]++;
+      }
+      return acc;
+    }, {});
+
+    const subjectData = Object.keys(doubtsBySubject).map((sub) => ({
+      subject: sub,
+      total: doubtsBySubject[sub],
+      pending: pendingBySubject[sub] || 0, // include pending counts
+    }));
+
+    return res.json(
+      new Apiresponse(
+        200,
+        {
+          totalDoubts,
+          answeredDoubts: answered,
+          pendingDoubts,
+          accuracy,
+          doubtsBySubject: subjectData, // now has total + pending
+        },
+        "Student stats fetched successfully"
+      )
+    );
+  } catch (err) {
+    console.error(err);
+    return res
+      .status(500)
+      .json(new Apiresponse(500, {}, "Error fetching student stats"));
+  }
+});
+
+
+
+/**
+ * Teacher Stats
+ * - total doubts answered
+ * - pending doubts in the system (unanswered)
+ * - accuracy (optional → correctness, but here just answered % of system doubts)
+ * - answered grouped by subject
+ */
+const getTeacherStats = asyncHandler(async (req, res) => {
+  try {
+    const teacherId = req.params.id;
+
+    const answeredDoubts = await Doubt.find({ answeredBy: teacherId });
+    const totalAnswered = answeredDoubts.length;
+
+    const totalUnanswered = await Doubt.countDocuments({ status: "unanswered" });
+    const unansweredDoubts = await Doubt.find({ status: "unanswered" });
+
+    // Group answered by subject
+    const answeredBySubject = answeredDoubts.reduce((acc, d) => {
+      if (!acc[d.subject]) acc[d.subject] = 0;
+      acc[d.subject]++;
+      return acc;
+    }, {});
+
+    // Group pending (unanswered) by subject
+    const pendingBySubject = unansweredDoubts.reduce((acc, d) => {
+      if (!acc[d.subject]) acc[d.subject] = 0;
+      acc[d.subject]++;
+      return acc;
+    }, {});
+
+    const answeredSubjectData = Object.keys(answeredBySubject).map((sub) => ({
+      subject: sub,
+      answered: answeredBySubject[sub],
+    }));
+
+    const pendingSubjectData = Object.keys(pendingBySubject).map((sub) => ({
+      subject: sub,
+      pending: pendingBySubject[sub],
+    }));
+
+    return res.json(
+      new Apiresponse(
+        200,
+        {
+          totalAnswered,
+          totalUnanswered,
+          answeredBySubject: answeredSubjectData,
+          pendingBySubject: pendingSubjectData,
+        },
+        "Teacher stats fetched successfully"
+      )
+    );
+  } catch (err) {
+    console.error(err);
+    return res
+      .status(500)
+      .json(new Apiresponse(500, {}, "Error fetching teacher stats"));
+  }
+});
+
+
+
+
+
 export {
   RegisterUser,
   getCurrentAccount,
@@ -706,5 +829,7 @@ export {
   changeSchoolStatus,
   gettingPendingSchool,
   getCurrentSchool,
-  loginSchool 
+  loginSchool,
+  getStudentStats,
+  getTeacherStats
 };

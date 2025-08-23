@@ -15,7 +15,9 @@ import {
   changeSchoolStatus, 
   gettingPendingSchool,
   loginSchool,
-  getCurrentSchool
+  getCurrentSchool,
+  getStudentStats,
+  getTeacherStats
 } from '../Controllers/Auth.Controller.js';
 
 import { jwtverify } from '../Middlewares/auth.middleware.js';
@@ -101,6 +103,12 @@ router
 router 
 .route('/currentschool')
 .get(getCurrentSchool)
+
+// GET /api/stats/student/:id
+router.route("/studentstat/:id").get(getStudentStats);
+
+// GET /api/stats/teacher/:id
+router.route("/teacherstat/:id").get(getTeacherStats);
 
 
 export default router;

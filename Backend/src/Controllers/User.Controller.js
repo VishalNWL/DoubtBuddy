@@ -2,6 +2,7 @@ import { asyncHandler } from "../Utils/asyncHandler.js";
 import { ApiError } from "../Utils/Apierrors.js";
 import { User } from "../Models/user.model.js";
 import { Apiresponse } from "../Utils/Apiresponse.js";
+import { Doubt } from "../Models/Doubts.model.js";
 
 // Get all students of a school
 const getAllStudentsBySchool = asyncHandler(async (req, res) => {
@@ -104,14 +105,24 @@ const getTeachersByClassBatchSubject = asyncHandler(async (req, res) => {
 });
 
 
+/**
+ * Student Stats
+ * - total doubts asked
+ * - answered vs unanswered
+ * - accuracy (answered / total)
+ * - doubts grouped by subject
+ */
+
+
+
+
 export {
   getAllStudentsBySchool,
   getStudentsByClassAndBatch,
   getStudentsByClassBatchSubject,
   getAllTeachersBySchool,
   getTeachersByClassAndBatch,
-  getTeachersByClassBatchSubject,
-  
+  getTeachersByClassBatchSubject,  
 };
 
 

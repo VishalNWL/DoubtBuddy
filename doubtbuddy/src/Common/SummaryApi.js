@@ -27,6 +27,14 @@ const SummaryAPi = {
         url: '/api/v1/auth/user-by-id',
         method: 'post'
     },
+     studentStats: {
+       url: '/api/v1/auth/studentstat', // append /:id when calling
+       method: 'get'
+   },
+   teacherStats: {
+       url: '/api/v1/auth/teacherstat', // append /:id when calling
+       method: 'get'
+   },
 
     getSubject: {
         url: '/api/v1/classinfo/getsubject',

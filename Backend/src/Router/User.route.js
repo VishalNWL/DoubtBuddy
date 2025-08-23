@@ -5,7 +5,7 @@ import {
   getStudentsByClassBatchSubject,
   getAllTeachersBySchool,
   getTeachersByClassAndBatch,
-  getTeachersByClassBatchSubject,
+  getTeachersByClassBatchSubject
 }   from '../Controllers/User.Controller.js'
 
 import {jwtverify} from '../Middlewares/auth.middleware.js'
@@ -18,5 +18,6 @@ router.route('/get-student-by-CBS').get(jwtverify,getStudentsByClassBatchSubject
 router.route('/get-teachers-by-School').get(jwtverify,getAllTeachersBySchool);
 router.route('/get-teachers-by-CB').get(jwtverify,getTeachersByClassAndBatch);
 router.route('/get-teacher-by-CBS').get(jwtverify,getTeachersByClassBatchSubject);
+
 
 export default router;
