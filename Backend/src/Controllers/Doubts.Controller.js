@@ -16,7 +16,7 @@ import { ApiError } from "../Utils/Apierrors.js"
 import { Doubt } from "../Models/Doubts.model.js"
 import { uploadOnCloudinary } from "../Utils/cloudinary.js"
 import { Apiresponse } from "../Utils/Apiresponse.js"
-import { getcurrentuser } from "./Auth.Controller.js"
+import { getCurrentAccount } from "./Auth.Controller.js"
 import { User } from "../Models/user.model.js"
 
 
@@ -71,6 +71,47 @@ const createDoubt = asyncHandler(async (req, res) => {
   }
 
 })
+
+
+//update doubt
+const updateDoubt = asyncHandler(async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(400).json(new Apiresponse(400, {}, "User not found"));
+    }
+
+    const { title, questionDescription, subject, questionPhoto ,doubtId} = req.body;
+
+    const doubt = await Doubt.findById(doubtId);
+
+    if (!doubt) {
+      return res.status(404).json(new Apiresponse(404, {}, "Doubt not found"));
+    }
+
+    // Optional: Ensure only the user who asked the doubt can edit
+    if (doubt.askedBy.toString() !== user._id.toString()) {
+      return res.status(403).json(new Apiresponse(403, {}, "Unauthorized to update this doubt"));
+    }
+
+    // Update fields if provided
+    if (title && title.trim() !== "") doubt.title = title;
+    if (questionDescription && questionDescription.trim() !== "") doubt.questionDescription = questionDescription;
+    if (subject && subject.trim() !== "") doubt.subject = subject;
+    if (questionPhoto && questionPhoto.trim() !== "") doubt.questionFile = questionPhoto;
+
+    doubt.schoolId = user.school;
+
+    await doubt.save();
+
+    return res
+      .status(200)
+      .json(new Apiresponse(200, doubt, "Doubt updated successfully"));
+  } catch (error) {
+    console.error(error);
+    throw new ApiError(500, "Error while updating doubt: " + error.message);
+  }
+});
 
 
 //Get Doubts by student by id
@@ -191,7 +232,7 @@ const allowedPairs = user.teacherClasses.map(entry => ({
 //#getting pending doubt for an teacher
 const teacherpendingdoubt = asyncHandler(async (req, res) => {
   try {
-    const user = getcurrentuser();
+    const user = "";
     if (!user) {
       res.status(400).json(new Apiresponse(400, {}, "Unauthorized request"));
     }
@@ -340,6 +381,7 @@ const getUnansweredDoubts = asyncHandler(async (req, res) => {
 
 export {
   createDoubt,
+  updateDoubt,
   getDoubtsByStudent,
   getDoubtsBySubjectAdmin,
   getDoubtsBySubject_student,
@@ -350,5 +392,5 @@ export {
   answerDoubt,
   getUnansweredDoubts,
   getTotalDoubtForTeacher,
-  teacherpendingdoubt
+  teacherpendingdoubt,
 }

@@ -7,6 +7,7 @@ import Axios from './Utils/Axios'
 import SummaryAPi from './Common/SummaryApi'
 import Header from './Components/Header'
 import {Toaster} from 'react-hot-toast'
+import Footer from './Components/Footer'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -38,7 +39,9 @@ useEffect(() => {
   return !loading ? (
     <main>
       <Header/>
-         <Outlet />
+         <section className='min-h-screen'>
+          <Outlet/>
+         </section>
       <Toaster toastOptions={{
         success:{
            iconTheme:{
@@ -47,6 +50,7 @@ useEffect(() => {
            }
         }
       }}/>
+     <Footer/>
         </main>
   ) : null
 }

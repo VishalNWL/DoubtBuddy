@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
   RegisterUser,
-  getcurrentuser,
+  getCurrentAccount,
   updateUser,
   updateAvatar,
   changePassword,
@@ -12,8 +12,10 @@ import {
   gettingPendingUser,
   changestatus,
   registerSchool,
-  changeSchoolStatus,
-  gettingPendingSchool
+  changeSchoolStatus, 
+  gettingPendingSchool,
+  loginSchool,
+  getCurrentSchool
 } from '../Controllers/Auth.Controller.js';
 
 import { jwtverify } from '../Middlewares/auth.middleware.js';
@@ -41,7 +43,7 @@ router
 // Get current logged-in user
 router
   .route("/current-user")
-  .get(jwtverify, getcurrentuser);
+  .get(jwtverify, getCurrentAccount);
 
 //Getting user details by id
 router
@@ -91,6 +93,14 @@ router
 router
 .route('/pendingschool')
 .get(jwtverify,gettingPendingSchool);
+
+router
+.route('/loginschool')
+.post(loginSchool)
+
+router 
+.route('/currentschool')
+.get(getCurrentSchool)
 
 
 export default router;

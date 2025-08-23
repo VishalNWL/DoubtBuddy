@@ -6,13 +6,14 @@ import {Button, Select} from '../Components/index.js'
 import { FaSearch } from 'react-icons/fa';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BiMessageCheck  } from 'react-icons/bi'; // Font Awesome
 import { AiOutlinePlusCircle } from 'react-icons/ai';
 import Axios from '../Utils/Axios.js';
 import SummaryAPi from '../Common/SummaryApi.js';
 import { MdDelete } from "react-icons/md";
 import { MdEdit } from "react-icons/md";
+import { jsx } from 'react/jsx-runtime';
 dayjs.extend(relativeTime);
 
 function StudentDashBoard() {
@@ -23,11 +24,13 @@ function StudentDashBoard() {
   const [choosensubject,setchoosensubject]=useState('');
   const [showdoubts,setshowdoubts]=useState([]);
   const user=useSelector((state)=>state.auth).userData;
-
+  const navigate = useNavigate();
+  
   const greentick = {'unanswered':'hidden','answered':'inline-block'};
 
- const fetchdoubts=async()=>{
-   try {
+  
+  const fetchdoubts=async()=>{
+    try {
             const totaldoubt= await Axios({
               ...SummaryAPi.totalStudentDoubt,
               data:{studentId:user._id}
@@ -101,6 +104,10 @@ const handleDelete = async(id)=>{
     }
 }
 
+const handleEdit =async(id)=>{
+  navigate(`/editdoubt/${id}`)
+}
+
 useEffect(()=>{
   if(choosensubject==='') return;
    
@@ -153,7 +160,7 @@ useEffect(()=>{
               <div className='flex items-center justify-between'>
                 <span><h1 className='ml-2 p-2 line-clamp-2 lg:line-clamp-3'><b>Title:</b>{e.title}</h1></span>
                 <span className='mr-5 flex justify-between gap-3'>
-                  <button onClick={(event)=>{event.preventDefault();event.stopPropagation();handleDelete(e._id);}} className={`border border-slate-400  text-slate-600 p-2 rounded-full hover:bg-green-400 hover:text-white ${(e.status==='answered')&&'hidden'}`}><MdEdit/></button>
+                  <button onClick={(event)=>{event.preventDefault();event.stopPropagation();handleEdit(e._id);}} className={`border border-slate-400  text-slate-600 p-2 rounded-full hover:bg-green-400 hover:text-white ${(e.status==='answered')&&'hidden'}`}><MdEdit/></button>
                   <button onClick={(event)=>{event.preventDefault();event.stopPropagation();handleDelete(e._id);}} className='border border-slate-400  text-slate-600 p-2 rounded-full hover:bg-red-400 hover:text-white'><MdDelete/></button>
                   </span>
               </div>

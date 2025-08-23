@@ -24,10 +24,17 @@ const Header = () => {
 
    
 useEffect(()=>{
-         if(user && user.role==='admin' && !navLinks.find(e=>e.href==='/signup')){
+         if(user && user.role==='admin' && !navLinks.find(e=>e.href==='/allowUser')){
         navLinks.push({
-            href:'/signup',
+            href:'/allowUser',
             label:'Register user'
+        })
+    }
+
+         if(user && user.role==='admin' && !navLinks.find(e=>e.href==='/registerschool')){
+        navLinks.push({
+            href:'/allowSchool',
+            label:'Register School'
         })
     }
 

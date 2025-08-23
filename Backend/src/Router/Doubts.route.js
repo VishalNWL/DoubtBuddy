@@ -10,7 +10,8 @@ import {
   getAllDoubts,
   answerDoubt,
   getUnansweredDoubts,
-  getTotalDoubtForTeacher
+  getTotalDoubtForTeacher,
+  updateDoubt
 } from '../Controllers/Doubts.Controller.js';
 
 import { jwtverify } from "../Middlewares/auth.middleware.js";
@@ -22,6 +23,10 @@ const router = Router();
 router
   .route("/create")
   .post(jwtverify, createDoubt); 
+
+router
+  .route("/updatedoubt")
+  .post(jwtverify, updateDoubt); 
 
 // Get all doubts (admin or dashboard)
 router

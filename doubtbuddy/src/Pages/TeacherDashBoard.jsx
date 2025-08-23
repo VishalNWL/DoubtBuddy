@@ -113,7 +113,7 @@ function TeacherDashBoard() {
         </form>
       </div>
 
-      <div className=' mt-5 flex justify-center items-center flex-col'>
+      <div className=' mt-5 flex justify-center items-center flex-col px-2'>
 
         {alldoubt && alldoubt.map(e => (
          <div className='w-full'>
@@ -121,7 +121,7 @@ function TeacherDashBoard() {
             pathname: `/solvedoubt/${e._id}/${user._id}`,
             search: `?student=${e.studentname}&title=${encodeURIComponent(e.title)}`
           }}>
-            <li className='w-full bg-gray-400 hover:bg-gray-600 min-h-20 rounded list-none p-2 mt-5'>
+            <li className='w-full bg-blue-200 shadow shadow-gray-500 hover:bg-blue-300 min-h-20 rounded-lg list-none p-3 mt-5'>
               <div className='flex justify-between px-5'>
                 <span><b>Asked by:</b> {e.studentname}</span>
                 <span>{dayjs(e.createdAt).fromNow()}</span>

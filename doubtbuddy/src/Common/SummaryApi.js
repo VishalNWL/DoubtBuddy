@@ -19,6 +19,10 @@ const SummaryAPi = {
         url: '/api/v1/auth/current-user',
         method: 'get'
     },
+    pendingUser:{
+       url:'/api/v1/auth/get-pending-user',
+       method:'get'
+    },
     userDetailsById: {
         url: '/api/v1/auth/user-by-id',
         method: 'post'
@@ -35,6 +39,10 @@ const SummaryAPi = {
     createDoubt: {
         url: '/api/v1/doubts/create',
         method: 'post'
+    },
+    updateDoubt:{
+        url:'/api/v1/doubts/updatedoubt',
+        method:'post'
     },
     doubtbyId: {
         url: '/api/v1/doubts/doubtbyid',
@@ -72,6 +80,31 @@ const SummaryAPi = {
     uploadfile:{
         url:'/api/file/upload',
         method:'post'
+    }
+    ,
+    changestatus:{
+        url:'/api/v1/auth/changestatus',
+        method:'post'
+    },
+    registerSchool:{
+        url:'/api/v1/auth/registerschool',
+        method:'post'
+    },
+    schoolLogin:{
+       url:'/api/v1/auth/loginschool',
+       method:'post'
+    },
+    schoolStatus:{
+        url:'/api/v1/auth/changeschoolstatus',
+        method:'post'
+    },
+    pendingSchool:{
+        url:'/api/v1/auth/pendingschool',
+        method:'get'
+    },
+    currentSchool:{
+        url:'/api/v1/auth/currentschool',
+        method:'get'
     }
 }
 

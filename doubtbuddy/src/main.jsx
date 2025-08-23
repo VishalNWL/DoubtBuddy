@@ -17,6 +17,10 @@ import StudentDashBoard from './Pages/StudentDashBoard.jsx'
 import Profile from './Pages/Profile.jsx'
 import Statistics from './Pages/Statistics.jsx'
 import Discussion from './Pages/Discussion.jsx'
+import AllowUser from './Pages/AllowUser.jsx'
+import AllowSchool from './Pages/AllowSchool.jsx'
+import SchoolDashBoard from './Pages/SchoolDashBoard.jsx'
+import EditDoubt from './Pages/EditDoubt.jsx'
 
 
 const router = createBrowserRouter([
@@ -81,6 +85,14 @@ const router = createBrowserRouter([
             ),
         },
         {
+            path:'/editdoubt/:doubtId',
+            element:(
+                <AuthLayout authentication={true}>
+                    <EditDoubt/>
+                </AuthLayout>
+            )
+        },
+        {
             path: "/subject-register",
             element: <SubjectRegister />,
         },
@@ -111,10 +123,22 @@ const router = createBrowserRouter([
         {
             path: "/signup",
             element: (
-                <AuthLayout authentication={true}>
+                
                     <Signup />
-                </AuthLayout>
+              
             ),
+        },
+        {
+            path:'/allowUser',
+            element:<AllowUser/>
+        },
+        {
+            path:'/allowSchool',
+            element:<AllowSchool/>
+        },
+        {
+            path:'/schooldashboard',
+            element:<SchoolDashBoard/>
         }
     ],
 },

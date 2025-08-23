@@ -72,23 +72,71 @@ const RegisterUser = asyncHandler(async (req, res) => {
   }
 });
  
-const getcurrentuser = asyncHandler(async (req, res) => {
-  const user = req.user;
-  if (!user) {
-    return res.status(400).json(new Apiresponse(400, {}, "User not logged in"));
+const getCurrentAccount = asyncHandler(async (req, res) => {
+  const account = req.user || req.school; 
+  // 👆 assuming your auth middleware attaches either `req.user` or `req.school`
+
+  if (!account) {
+    return res
+      .status(400)
+      .json(new Apiresponse(400, {}, "Not logged in"));
   }
 
-  const userdata = await User.findById(user._id);
-  if (!userdata) {
-    return res.status(400).json(new Apiresponse(400, {}, "User not found"));
-  }
+  let data;
 
-  if(userdata.status!='active'){
-    return res.status(400).json(new Apiresponse(400,{},"User Not Verified by the higher authority"))
-  }
+  if (account.role) {
+    // 👇 this means it's a USER (student/teacher)
+    data = await User.findById(account._id).select("-password -refreshToken");
 
-  return res.status(200).json(new Apiresponse(200, userdata, "Current user fetched successfully"));
+    if (!data) {
+      return res
+        .status(404)
+        .json(new Apiresponse(404, {}, "User not found"));
+    }
+
+    if (data.status !== "active") {
+      return res
+        .status(403)
+        .json(
+          new Apiresponse(
+            403,
+            {},
+            "User Not Verified by the higher authority"
+          )
+        );
+    }
+
+    return res
+      .status(200)
+      .json(new Apiresponse(200, data, "Current user fetched successfully"));
+  } else {
+    // 👇 otherwise treat as SCHOOL account
+    data = await School.findById(account._id).select("-password -refreshToken");
+
+    if (!data) {
+      return res
+        .status(404)
+        .json(new Apiresponse(404, {}, "School not found"));
+    }
+
+    if (data.status !== "active") {
+      return res
+        .status(403)
+        .json(
+          new Apiresponse(
+            403,
+            {},
+            "School not verified by higher authority"
+          )
+        );
+    }
+
+    return res
+      .status(200)
+      .json(new Apiresponse(200, data, "Current school fetched successfully"));
+  }
 });
+
 
 //getting user by Id
 const getUserById=asyncHandler(async(req,res)=>{
@@ -103,19 +151,35 @@ const getUserById=asyncHandler(async(req,res)=>{
     throw new ApiError(500,"Something went wrong")
   }
 })
-
-const generateAccessTokenAndRefreshToken = async (userid) => {
+const generateAccessTokenAndRefreshToken = async (id, type = "user") => {
   try {
-    const user = await User.findById(userid);
-    const refreshToken = user.generateRefreshToken();
-    const accessToken = user.generateAcessToken();
-    user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: false });
+    let entity;
+
+    if (type === "user") {
+      entity = await User.findById(id);
+    } else if (type === "school") {
+      entity = await School.findById(id);
+    }
+
+    if (!entity) {
+      throw new ApiError(404, `${type} not found`);
+    }
+
+    // Generate tokens
+    const accessToken = entity.generateAccessToken();
+    const refreshToken = entity.generateRefreshToken();
+
+    // Save refreshToken in DB
+    entity.refreshToken = refreshToken;
+    await entity.save({ validateBeforeSave: false });
 
     return { accessToken, refreshToken };
   } catch (error) {
     console.log(error);
-    throw new ApiError(400, "Error generating access and refresh token");
+    throw new ApiError(
+      400,
+      `Error generating access and refresh token for ${type}`
+    );
   }
 };
 
@@ -136,7 +200,7 @@ const loginUser = asyncHandler(async (req, res) => {
     return res.status(400).json(new Apiresponse(400, {}, "Password is not correct"));
   }
 
-  const { accessToken, refreshToken } = await generateAccessTokenAndRefreshToken(user._id);
+  const { accessToken, refreshToken } = await generateAccessTokenAndRefreshToken(user._id,"user");
   const userLoggedIn = await User.findById(user._id).select("-password -refreshToken");
 
   const options = {
@@ -155,8 +219,25 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
-  await User.findByIdAndUpdate(req.user._id, {
-    $set: { refreshToken: "", accessToken: "" }
+   let model;
+  let entity;
+
+  // 🔹 Check if it's a user or school
+  if (req.user) {
+    model = User;
+    entity = req.user;
+  } else if (req.school) {
+    model = School;
+    entity = req.school;
+  } else {
+    return res
+      .status(400)
+      .json(new Apiresponse(400, {}, "No user or school found in request"));
+  }
+
+  // 🔹 Clear tokens in DB
+  await model.findByIdAndUpdate(entity._id, {
+    $set: { refreshToken: "", accessToken: "" },
   });
 
   const options = {
@@ -164,10 +245,18 @@ const logoutUser = asyncHandler(async (req, res) => {
     secure: true,
   };
 
-  return res.status(200)
+  // 🔹 Clear cookies
+  return res
+    .status(200)
     .clearCookie("accessToken", options)
     .clearCookie("refreshToken", options)
-    .json(new Apiresponse(200, {}, "Logged out successfully"));
+    .json(
+      new Apiresponse(
+        200,
+        {},
+        `${req.user ? "User" : "School"} logged out successfully`
+      )
+    );
 });
 
 const refreshAccesstoken = asyncHandler(async (req, res) => {
@@ -324,20 +413,30 @@ const changestatus = async(req,res)=>{
   }
 }
 
-const registerSchool = async(req,res)=>{
- try {
+const registerSchool = async (req, res) => {
+  try {
     let {
       schoolName,
       address,
       pincode,
       location,
-      contact:contactNo,
+      contact: contactNo,
       country,
       schoolId,
+      password,
     } = req.body;
 
     // ✅ Required fields check
-    if (!schoolName || !address || !pincode || !location || !contactNo || !country || !schoolId) {
+    if (
+      !schoolName ||
+      !address ||
+      !pincode ||
+      !location ||
+      !contactNo ||
+      !country ||
+      !schoolId ||
+      !password
+    ) {
       return res
         .status(400)
         .json(new Apiresponse(400, {}, "Required fields missing"));
@@ -367,6 +466,7 @@ const registerSchool = async(req,res)=>{
       contactNo,
       country,
       schoolId,
+      password, // will be hashed automatically in pre-save hook
       status: "pending", // default
     };
 
@@ -375,7 +475,19 @@ const registerSchool = async(req,res)=>{
 
     return res
       .status(201)
-      .json(new Apiresponse(201, school, "School registration requested successfully"));
+      .json(
+        new Apiresponse(
+          201,
+          {
+            _id: school._id,
+            schoolName: school.schoolName,
+            schoolId: school.schoolId,
+            status: school.status,
+            createdAt: school.createdAt,
+          },
+          "School registration requested successfully"
+        )
+      );
   } catch (error) {
     console.error("School Register error:", error);
     throw new ApiError(
@@ -383,7 +495,117 @@ const registerSchool = async(req,res)=>{
       "There was an error while registering the school: " + error.message
     );
   }
-}
+};
+
+const getCurrentSchool = asyncHandler(async (req, res) => {
+  const school = req.school; // this comes from middleware after verifying token
+  if (!school) {
+    return res
+      .status(400)
+      .json(new Apiresponse(400, {}, "School not logged in"));
+  }
+
+  const schoolData = await School.findById(school._id);
+  if (!schoolData) {
+    return res
+      .status(400)
+      .json(new Apiresponse(400, {}, "School not found"));
+  }
+
+  if (schoolData.status !== "active") {
+    return res
+      .status(400)
+      .json(
+        new Apiresponse(
+          400,
+          {},
+          "School not verified by the higher authority"
+        )
+      );
+  }
+
+  return res
+    .status(200)
+    .json(
+      new Apiresponse(
+        200,
+        schoolData,
+        "Current school fetched successfully"
+      )
+    );
+});
+
+const loginSchool = asyncHandler(async (req, res) => {
+  const { schoolId, password } = req.body;
+
+  // ✅ Check required fields
+  if (!schoolId || !password) {
+    return res
+      .status(400)
+      .json(new Apiresponse(400, {}, "School ID and password are required"));
+  }
+
+  // ✅ Find school by schoolId
+  const school = await School.findOne({ schoolId });
+  if (!school) {
+    return res
+      .status(400)
+      .json(new Apiresponse(400, {}, "School not found"));
+  }
+
+  // ✅ Verify password
+  const isPasswordValid = await school.isPasswordCorrect(password);
+  if (!isPasswordValid) {
+    return res
+      .status(400)
+      .json(new Apiresponse(400, {}, "Password is not correct"));
+  }
+
+  // ✅ Check if school is active
+  if (school.status !== "active") {
+    return res
+      .status(403)
+      .json(
+        new Apiresponse(
+          403,
+          {},
+          "School not verified by the higher authority"
+        )
+      );
+  }
+
+  // ✅ Generate tokens
+  const { accessToken, refreshToken } =
+    await generateAccessTokenAndRefreshToken(school._id, "school"); 
+  // pass type=school so tokens don’t mix with users
+
+  // ✅ Remove sensitive fields
+  const schoolLoggedIn = await School.findById(school._id).select(
+    "-password -refreshToken"
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  // ✅ Send response
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new Apiresponse(
+        200,
+        {
+          school: schoolLoggedIn,
+          accessToken,
+          refreshToken,
+        },
+        "School logged in successfully"
+      )
+    );
+});
 
 const gettingPendingSchool = async (req, res) => {
   try {
@@ -469,7 +691,7 @@ const changeSchoolStatus = async (req, res) => {
 
 export {
   RegisterUser,
-  getcurrentuser,
+  getCurrentAccount,
   updateUser,
   updateCoverimg,
   updateAvatar,
@@ -482,5 +704,7 @@ export {
   changestatus,
   registerSchool,
   changeSchoolStatus,
-  gettingPendingSchool
+  gettingPendingSchool,
+  getCurrentSchool,
+  loginSchool 
 };
