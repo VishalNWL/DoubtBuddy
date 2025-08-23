@@ -113,7 +113,11 @@ const SummaryAPi = {
     currentSchool:{
         url:'/api/v1/auth/currentschool',
         method:'get'
-    }
+    },
+    discussionHistory: {
+  url: "/api/v1/discussion/history",
+  method: "post"
+},
 }
 
 
