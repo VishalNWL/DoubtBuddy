@@ -8,14 +8,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logout as authLogout } from '../store/authSlice';
 
 
-const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/profile', label: 'Profile' },
-    { href: '/statistics', label: 'Statistics' },
-    { href: '/discussion', label: 'Discussion' }
-];
-
-
 const Header = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const dispatch = useDispatch();
@@ -23,22 +15,21 @@ const Header = () => {
     const user = useSelector(state=>state.auth).userData;
 
    
-useEffect(()=>{
-         if(user && user.role==='admin' && !navLinks.find(e=>e.href==='/allowUser')){
-        navLinks.push({
-            href:'/allowUser',
-            label:'Register user'
-        })
-    }
+  const navLinks = [
+    { href: '/', label: 'Home' },
+    { href: '/profile', label: 'Profile' },
+    { href: '/statistics', label: 'Statistics' },
+  ];
 
-         if(user && user.role==='admin' && !navLinks.find(e=>e.href==='/registerschool')){
-        navLinks.push({
-            href:'/allowSchool',
-            label:'Register School'
-        })
-    }
+  if (user?.role === 'admin') {
+    navLinks.push({ href: '/allowUser', label: 'Register User' });
+    navLinks.push({ href: '/allowSchool', label: 'Register School' });
+  }
 
-},[])
+  if (user?.role === 'student') {
+    navLinks.push({ href: '/discussion', label: 'Discussion' });
+  }
+
 
     const handleLogout = async () => {
         try {

@@ -22,62 +22,63 @@ function Login() {
   // 👇 toggle user/school login
   const [loginType, setLoginType] = useState("user"); // "user" | "school"
 
-  const login = async (data) => {
-    setError("");
+ const login = async (data) => {
+  setError("");
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      let session;
-      if (loginType === "user") {
-        session = await Axios({
-          ...SummaryAPi.login, // user login API
-          data,
-        });
-      } else {
-        session = await Axios({
-          ...SummaryAPi.schoolLogin, // dummy school login API
-          data,
-        });
-      }
-
-      if (session.data.success) {
-        toast.success(
-          loginType === "user"
-            ? "User Logged in Successfully"
-            : "School Logged in Successfully"
-        );
-
-        localStorage.setItem("accesstoken", session.data.data.accessToken);
-        localStorage.setItem("refreshtoken", session.data.data.refreshToken);
-
-      
-         const profileResponse = await Axios({ ...SummaryAPi.userDetails });
-     
-        if (profileResponse.data.success) {
-          const dataFetched = profileResponse.data.data;
-          dispatch(authLogin(dataFetched));
-
-          // user navigation
-          if (loginType === "user") {
-            if (dataFetched?.role === "teacher") {
-              navigate("/teacherdashboard");
-            } else if (dataFetched?.role === "student") {
-              navigate("/studentdashboard");
-            }
-          } else {
-            navigate("/schooldashboard"); // redirect school login
-          }
-        }
-      } else {
-        setError("Invalid credentials");
-      }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    let session;
+    if (loginType === "user") {
+      session = await Axios({
+        ...SummaryAPi.login,
+        data,
+      });
+    } else {
+      session = await Axios({
+        ...SummaryAPi.schoolLogin,
+        data,
+      });
     }
-  };
+
+    if (session.data.success) {
+      toast.success(session.data.message || "Login successful");
+
+      localStorage.setItem("accesstoken", session.data.data.accessToken);
+      localStorage.setItem("refreshtoken", session.data.data.refreshToken);
+
+      const profileResponse = await Axios({ ...SummaryAPi.userDetails });
+
+      if (profileResponse.data.success) {
+        const dataFetched = profileResponse.data.data;
+        dispatch(authLogin(dataFetched));
+
+        if (loginType === "user") {
+          if (dataFetched?.role === "teacher") {
+            navigate("/teacherdashboard");
+          } else if (dataFetched?.role === "student") {
+            navigate("/studentdashboard");
+          }
+        } else {
+          navigate("/schooldashboard");
+        }
+      }
+    } else {
+      // 👇 if backend responds with success=false
+      setError(session.data.message || "Invalid credentials");
+    }
+  } catch (err) {
+    console.error("Login error:", err);
+
+    // 👇 show backend error message properly
+    const backendMessage =
+      err.response?.data?.message || err.message || "Something went wrong";
+
+    setError(backendMessage);
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (user && loginType === "user") {
     if (user?.role === "teacher") {

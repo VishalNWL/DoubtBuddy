@@ -198,7 +198,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const isPasswordValid = await user.isPasswordCorrect(password);
   if (!isPasswordValid) {
-    return res.status(400).json(new Apiresponse(400, {}, "Password is not correct"));
+    return res.status(400).json(new Apiresponse(400, {}, "Incorrect Password"));
   }
 
   const { accessToken, refreshToken } = await generateAccessTokenAndRefreshToken(user._id,"user");

@@ -3,7 +3,7 @@ import { FaInstagram, FaTwitter, FaLinkedin, FaFacebook,FaCheckCircle } from "re
 
 function Footer() {
   return (
-     <footer className="bg-blue-800 text-white py-10">
+     <footer className="bg-blue-800 text-white py-10 mt-4 shadow">
       <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
         
         {/* About / Features Section */}
