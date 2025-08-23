@@ -8,7 +8,12 @@ import {
   refreshAccesstoken,
   logoutUser,
   loginUser,
-  getUserById
+  getUserById,
+  gettingPendingUser,
+  changestatus,
+  registerSchool,
+  changeSchoolStatus,
+  gettingPendingSchool
 } from '../Controllers/Auth.Controller.js';
 
 import { jwtverify } from '../Middlewares/auth.middleware.js';
@@ -66,5 +71,26 @@ router
 router
   .route("/update")
   .put(jwtverify, updateUser);
+
+router
+.route('/get-pending-user')
+.get(jwtverify,gettingPendingUser);
+
+router
+.route('/changestatus')
+.post(jwtverify,changestatus);
+
+router
+.route('/registerschool')
+.post(registerSchool);
+
+router
+.route('/changeschoolstatus')
+.post(jwtverify,changeSchoolStatus);
+
+router
+.route('/pendingschool')
+.get(jwtverify,gettingPendingSchool);
+
 
 export default router;

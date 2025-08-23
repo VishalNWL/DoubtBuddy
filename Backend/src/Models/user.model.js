@@ -37,6 +37,12 @@ const userSchema = new Schema({
     enum: ['student', 'teacher','admin'],
     required: true
   },
+  
+status: {
+     type:String,
+     enum:['active','pending','rejected'],
+     default:'pending'
+  },
 
   school: { type: String,
      required: function () {

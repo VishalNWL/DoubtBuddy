@@ -103,13 +103,15 @@ const getTeachersByClassBatchSubject = asyncHandler(async (req, res) => {
   res.status(200).json(new Apiresponse(200, teachers, "Teachers filtered by class, batch and subject"));
 });
 
+
 export {
   getAllStudentsBySchool,
   getStudentsByClassAndBatch,
   getStudentsByClassBatchSubject,
   getAllTeachersBySchool,
   getTeachersByClassAndBatch,
-  getTeachersByClassBatchSubject
+  getTeachersByClassBatchSubject,
+  
 };
 
 

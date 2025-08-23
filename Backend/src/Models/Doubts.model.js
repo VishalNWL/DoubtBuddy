@@ -15,6 +15,11 @@ const doubtSchema = new Schema({
     type: String,
     required:true
   },
+   schoolId: {
+      type: String,
+      required: true,
+      unique: true
+    },
 
   questionFile: {
     type: String, // Cloudinary URL

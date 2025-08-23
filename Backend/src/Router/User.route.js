@@ -5,7 +5,7 @@ import {
   getStudentsByClassBatchSubject,
   getAllTeachersBySchool,
   getTeachersByClassAndBatch,
-  getTeachersByClassBatchSubject
+  getTeachersByClassBatchSubject,
 }   from '../Controllers/User.Controller.js'
 
 import {jwtverify} from '../Middlewares/auth.middleware.js'

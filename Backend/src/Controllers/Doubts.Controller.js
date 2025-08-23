@@ -53,7 +53,8 @@ const createDoubt = asyncHandler(async (req, res) => {
       askedBy: user._id,
       subject: subject,
       class: user.class,
-      batch: user.batch
+      batch: user.batch,
+      schoolId:user.school
     })
 
     student.AskedQuestions = [...student.AskedQuestions,question];
@@ -172,21 +173,11 @@ const allowedPairs = user.teacherClasses.map(entry => ({
   batch: entry.batch
 }));
 
-   const totalDoubt = await Doubt.find({
-  $or: allowedPairs
-});
-
-
-    // user.teacherClasses.forEach(async (i) => {
-    //          sum= await Doubt.aggregate([
-    //       {$match:{class:`${i.class}`, batch:`${i.batch}`,subject:`${i.subject}`}},
-    //       {$count:'total'}
-    //      ]) 
-
-    //  if(sum){
-    //     totalcount+= sum[0].total;
-    //  }
-    // })
+  // ✅ Fetch only doubts that match class+batch and same school
+  const totalDoubt = await Doubt.find({
+    schoolId: user.school,   // ensure doubt belongs to the same school as teacher
+    $or: allowedPairs
+  });
 
     res.status(200)
       .json(new Apiresponse(200, totalDoubt, "Total doubt of teacher fetched successfully"));

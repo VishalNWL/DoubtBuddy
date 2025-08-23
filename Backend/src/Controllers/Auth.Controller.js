@@ -4,6 +4,7 @@ import { User } from "../Models/user.model.js";
 import { uploadOnCloudinary } from "../Utils/cloudinary.js";
 import { Apiresponse } from "../Utils/Apiresponse.js";
 import jwt from "jsonwebtoken"; // Needed for refresh token verify
+import School from '../Models/School.model.js'
 
 // Registering students and teachers from admin panel
 const RegisterUser = asyncHandler(async (req, res) => {
@@ -31,6 +32,16 @@ const RegisterUser = asyncHandler(async (req, res) => {
       role,
       password
     };
+
+     if ((role==='student' || role==='teacher') && school) {
+      const existingSchool = await School.findOne({ schoolId: school, status: "active" });
+      if (!existingSchool) {
+        return res.status(400).json(
+          new Apiresponse(400, {}, "Invalid or inactive School ID")
+        );
+      }
+    }
+
 
     if (role === "student") {
       if (!classval) {
@@ -70,6 +81,10 @@ const getcurrentuser = asyncHandler(async (req, res) => {
   const userdata = await User.findById(user._id);
   if (!userdata) {
     return res.status(400).json(new Apiresponse(400, {}, "User not found"));
+  }
+
+  if(userdata.status!='active'){
+    return res.status(400).json(new Apiresponse(400,{},"User Not Verified by the higher authority"))
   }
 
   return res.status(200).json(new Apiresponse(200, userdata, "Current user fetched successfully"));
@@ -248,6 +263,210 @@ const updateCoverimg = () => {
   console.log("hello");
 };
 
+const gettingPendingUser = async(req,res)=>{
+   try {
+    const userId = req.user;
+    const  user = await User.findById(userId);
+
+    if(!user){
+       return res.status(400).json(new Apiresponse(500,{},"You are not allowed to fetch data" ))
+    }
+    if(user.role!=='admin'){
+       return res.status(400).json(new Apiresponse(500,{},"You are not allowed to fetch data" ))
+    }
+    
+    const allPendingUser = await User.find({status:"pending"});
+    
+    return res.status(200).json(new Apiresponse(200,allPendingUser,"All pending user fetched successfully"));
+    
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(new Apiresponse(500,{},'Something went wrong'))
+  }
+}
+
+const changestatus = async(req,res)=>{
+  try {
+    const userId = req.user;
+    const  user = await User.findById(userId);
+    
+    if(!user){
+       return res.status(400).json(new Apiresponse(500,{},"You are not allowed to fetch data" ))
+    }
+    if(user.role!=='admin'){
+       return res.status(400).json(new Apiresponse(500,{},"You are not allowed to fetch data" ))
+    }
+    
+    const {Id , status} = req.body;
+    let pendinguser;
+
+    if(status==='rejected'){
+
+       pendinguser = await User.findByIdAndDelete(Id);
+    }
+    else{
+      
+       pendinguser = await User.findByIdAndUpdate(Id,{status:status},{new:true});
+       if(!pendinguser){
+         return res.status(400).json(new Apiresponse(500,{},"User are not found" ))
+   
+       }
+    }
+
+
+
+    return res.status(200).json(new Apiresponse(200, pendinguser,"User status changed successfully"))
+
+
+  } catch (error) {
+    console.log(error);    
+    return res.status(500).json(new Apiresponse(500,{},'Something went wrong'))
+  }
+}
+
+const registerSchool = async(req,res)=>{
+ try {
+    let {
+      schoolName,
+      address,
+      pincode,
+      location,
+      contact:contactNo,
+      country,
+      schoolId,
+    } = req.body;
+
+    // ✅ Required fields check
+    if (!schoolName || !address || !pincode || !location || !contactNo || !country || !schoolId) {
+      return res
+        .status(400)
+        .json(new Apiresponse(400, {}, "Required fields missing"));
+    }
+
+    // ✅ Validate schoolId format (no spaces)
+    if (/\s/.test(schoolId)) {
+      return res
+        .status(400)
+        .json(new Apiresponse(400, {}, "School ID cannot contain spaces"));
+    }
+
+    // ✅ Check if schoolId already exists
+    const existingSchool = await School.findOne({ schoolId });
+    if (existingSchool) {
+      return res
+        .status(409)
+        .json(new Apiresponse(409, {}, "School ID already exists"));
+    }
+
+    // ✅ Prepare data
+    let schoolData = {
+      schoolName,
+      address,
+      pincode,
+      location,
+      contactNo,
+      country,
+      schoolId,
+      status: "pending", // default
+    };
+
+    // ✅ Save to DB
+    const school = await School.create(schoolData);
+
+    return res
+      .status(201)
+      .json(new Apiresponse(201, school, "School registration requested successfully"));
+  } catch (error) {
+    console.error("School Register error:", error);
+    throw new ApiError(
+      500,
+      "There was an error while registering the school: " + error.message
+    );
+  }
+}
+
+const gettingPendingSchool = async (req, res) => {
+  try {
+    const userId = req.user;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res
+        .status(400)
+        .json(new Apiresponse(500, {}, "You are not allowed to fetch data"));
+    }
+    if (user.role !== "admin") {
+      return res
+        .status(400)
+        .json(new Apiresponse(500, {}, "You are not allowed to fetch data"));
+    }
+
+    const allPendingSchool = await School.find({ status: "pending" });
+
+    return res.status(200).json(
+      new Apiresponse(
+        200,
+        allPendingSchool,
+        "All pending schools fetched successfully"
+      )
+    );
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(new Apiresponse(500, {}, "Something went wrong"));
+  }
+};
+
+
+const changeSchoolStatus = async (req, res) => {
+  try {
+    const userId = req.user;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res
+        .status(400)
+        .json(new Apiresponse(500, {}, "You are not allowed to fetch data"));
+    }
+    if (user.role !== "admin") {
+      return res
+        .status(400)
+        .json(new Apiresponse(500, {}, "You are not allowed to fetch data"));
+    }
+
+    const { Id, status } = req.body;
+    let pendingschool;
+
+    if (status === "rejected") {
+      pendingschool = await School.findByIdAndDelete(Id);
+    } else {
+      pendingschool = await School.findByIdAndUpdate(
+        Id,
+        { status: status },
+        { new: true }
+      );
+
+      if (!pendingschool) {
+        return res
+          .status(400)
+          .json(new Apiresponse(500, {}, "School not found"));
+      }
+    }
+
+    return res
+      .status(200)
+      .json(
+        new Apiresponse(200, pendingschool, "School status changed successfully")
+      );
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(new Apiresponse(500, {}, "Something went wrong"));
+  }
+};
+
 export {
   RegisterUser,
   getcurrentuser,
@@ -258,5 +477,10 @@ export {
   refreshAccesstoken,
   logoutUser,
   loginUser,
-  getUserById
+  getUserById,
+  gettingPendingUser,
+  changestatus,
+  registerSchool,
+  changeSchoolStatus,
+  gettingPendingSchool
 };
