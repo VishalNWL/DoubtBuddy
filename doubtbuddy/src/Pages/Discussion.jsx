@@ -3,7 +3,8 @@ import io from "socket.io-client";
 import summaryApi from "../Common/SummaryApi.js";
 import { useSelector } from "react-redux";
 import Axios from '../Utils/Axios.js'
-
+import Picker from "emoji-picker-react";
+import { Smile } from "lucide-react"; // nice emoji icon
 
 const socket = io(import.meta.env.VITE_BASE_URL, {
   withCredentials: true,
@@ -18,6 +19,11 @@ export default function Discussion() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const chatEndRef = useRef(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+    const onEmojiClick = (emojiObject) => {
+    setNewMessage((prev) => prev + emojiObject.emoji);
+  };
 
   // ✅ get logged-in user from redux store
   const user = useSelector((state) => state.auth).userData;
@@ -126,6 +132,23 @@ export default function Discussion() {
 
       {/* Input Box */}
       <div className="p-3 border-t flex items-center bg-white rounded-b-lg">
+          {/* Emoji Button */}
+  <button
+    type="button"
+    onClick={() => setShowEmojiPicker((prev) => !prev)}
+    className="mr-2 text-gray-600 hover:text-blue-600"
+  >
+    <Smile size={22} />
+  </button>
+
+  {/* Emoji Picker */}
+  {showEmojiPicker && (
+    <div className="absolute bottom-14 left-2 z-50 shadow-lg">
+      <Picker onEmojiClick={onEmojiClick} />
+    </div>
+  )}
+
+  {/* Input */}
         <input
           type="text"
           className="flex-1 border rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
