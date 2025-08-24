@@ -15,7 +15,7 @@ cloudinary.config({
   api_secret: process.env.api_secret,
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 
 dbconnection().then(() => {
   // 1) Create raw HTTP server
