@@ -1,7 +1,8 @@
 import  Axios from '../Utils/Axios.js';
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import SummaryAPi from '../Common/SummaryApi.js';
+import { Atom } from "react-loading-indicators";
 
 const SubjectRegister = () => {
   const {
@@ -17,6 +18,8 @@ const SubjectRegister = () => {
     },
   });
 
+  const [loading ,setLoading] = useState(false);
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'subjects',
@@ -31,18 +34,23 @@ const SubjectRegister = () => {
       subjects: data.subjects.map(subject => subject.name.trim()).filter(name => name),
     };
 
-     console.log(formattedData)
+    
     try {
+      setLoading(true);
       const response = await Axios({
         ...SummaryAPi.registerSubject,
         data:formattedData
       })
-      const result = await response.json();
+      const result = response;
       console.log('Success:', result);
       alert('Subjects registered successfully!');
     } catch (error) {
       console.error('Error submitting data:', error);
       alert('Failed to register subjects.');
+    }
+
+    finally{
+      setLoading(false);
     }
   };
 
@@ -51,11 +59,11 @@ const SubjectRegister = () => {
       <h2 className="text-2xl font-bold mb-4">Subject Registration</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label className="block font-medium">School</label>
+          <label className="block font-medium">School Id</label>
           <input
             {...register('school', { required: 'School is required' })}
             className="w-full border px-3 py-2 rounded"
-            placeholder="Enter school name"
+            placeholder="Enter school Id"
           />
           {errors.school && <p className="text-red-500">{errors.school.message}</p>}
         </div>
@@ -97,12 +105,22 @@ const SubjectRegister = () => {
           </button>
         </div>
 
-        <button
+      {loading?
+        (
+        <div className='w-full bg-blue-600 text-white py-2 rounded flex justify-center h-10 items-center'>
+          <div className='scale-50'>
+            <Atom color={'#fff'} size='small'/>
+          </div>
+        </div>
+        ):
+        (  <button
           type="submit"
-          className="w-full bg-green-600 text-white py-2 rounded font-semibold"
+          className="w-full bg-blue-600 text-white py-2 rounded font-semibold"
         >
           Submit
         </button>
+      )
+      }
       </form>
     </div>
   );

@@ -17,7 +17,10 @@ import {
   loginSchool,
   getCurrentSchool,
   getStudentStats,
-  getTeacherStats
+  getTeacherStats,
+  sendOtp,
+  verifyOtp,
+  resetpassword
 } from '../Controllers/Auth.Controller.js';
 
 import { jwtverify } from '../Middlewares/auth.middleware.js';
@@ -109,6 +112,10 @@ router.route("/studentstat/:id").get(getStudentStats);
 
 // GET /api/stats/teacher/:id
 router.route("/teacherstat/:id").get(getTeacherStats);
+
+router.route("/sendotp").post(sendOtp);
+router.route("/verifyotp").post(verifyOtp);
+router.route("/resetpassword").post(resetpassword);
 
 
 export default router;

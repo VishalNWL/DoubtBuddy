@@ -30,6 +30,10 @@ const Header = () => {
     navLinks.push({ href: '/discussion', label: 'Discussion' });
   }
 
+  if(user?.schoolName){
+    navLinks.push({href:'/addsubject', label:'Add Subject'})
+  }
+
 
     const handleLogout = async () => {
         try {

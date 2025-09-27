@@ -15,6 +15,19 @@ const SummaryAPi = {
         url:'api/v1/auth/logout',
         method:'post'
     },
+    sendOTP:{
+        url:'api/v1/auth/sendotp',
+        method:'post'
+    },
+    verifyOTP:{
+        url:'api/v1/auth/verifyotp',
+        method:'post'
+    },
+    resetPassword:{
+        url:'api/v1/auth/resetpassword',
+        method:'post'
+    },
+
     userDetails: {
         url: '/api/v1/auth/current-user',
         method: 'get'
@@ -35,7 +48,7 @@ const SummaryAPi = {
        url: '/api/v1/auth/teacherstat', // append /:id when calling
        method: 'get'
    },
-
+   
     getSubject: {
         url: '/api/v1/classinfo/getsubject',
         method: 'post'

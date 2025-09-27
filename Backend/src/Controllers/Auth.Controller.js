@@ -6,6 +6,8 @@ import { Apiresponse } from "../Utils/Apiresponse.js";
 import jwt from "jsonwebtoken"; // Needed for refresh token verify
 import School from '../Models/School.model.js'
 import { Doubt } from "../Models/Doubts.model.js";
+import { generateOtp } from "../Utils/OTPGenerator.js";
+import { sendOTP } from "../Utils/SendOtp.js";
 
 // Registering students and teachers from admin panel
 const RegisterUser = asyncHandler(async (req, res) => {
@@ -295,6 +297,7 @@ const refreshAccesstoken = asyncHandler(async (req, res) => {
   }
 });
 
+
 const changePassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
   const user = await User.findById(req.user._id);
@@ -425,6 +428,7 @@ const registerSchool = async (req, res) => {
       country,
       schoolId,
       password,
+      email
     } = req.body;
 
     // ✅ Required fields check
@@ -436,7 +440,8 @@ const registerSchool = async (req, res) => {
       !contactNo ||
       !country ||
       !schoolId ||
-      !password
+      !password ||
+      !email
     ) {
       return res
         .status(400)
@@ -461,6 +466,7 @@ const registerSchool = async (req, res) => {
     // ✅ Prepare data
     let schoolData = {
       schoolName,
+      email,
       address,
       pincode,
       location,
@@ -745,8 +751,6 @@ const getStudentStats = asyncHandler(async (req, res) => {
   }
 });
 
-
-
 /**
  * Teacher Stats
  * - total doubts answered
@@ -755,60 +759,236 @@ const getStudentStats = asyncHandler(async (req, res) => {
  * - answered grouped by subject
  */
 const getTeacherStats = asyncHandler(async (req, res) => {
-  try {
-    const teacherId = req.params.id;
+  const teacherId = req.params.id;
 
-    const answeredDoubts = await Doubt.find({ answeredBy: teacherId });
-    const totalAnswered = answeredDoubts.length;
+try {
+  const teacher = await User.findById(teacherId);
 
-    const totalUnanswered = await Doubt.countDocuments({ status: "unanswered" });
-    const unansweredDoubts = await Doubt.find({ status: "unanswered" });
+  if (!teacher) {
+    return res
+      .status(400)
+      .json(new Apiresponse(400, {}, "Teacher not found"));
+  }
 
-    // Group answered by subject
-    const answeredBySubject = answeredDoubts.reduce((acc, d) => {
-      if (!acc[d.subject]) acc[d.subject] = 0;
-      acc[d.subject]++;
-      return acc;
-    }, {});
-
-    // Group pending (unanswered) by subject
-    const pendingBySubject = unansweredDoubts.reduce((acc, d) => {
-      if (!acc[d.subject]) acc[d.subject] = 0;
-      acc[d.subject]++;
-      return acc;
-    }, {});
-
-    const answeredSubjectData = Object.keys(answeredBySubject).map((sub) => ({
-      subject: sub,
-      answered: answeredBySubject[sub],
-    }));
-
-    const pendingSubjectData = Object.keys(pendingBySubject).map((sub) => ({
-      subject: sub,
-      pending: pendingBySubject[sub],
-    }));
-
+  // Build an array of filter conditions from teacherClasses
+  const teacherClasses = teacher.teacherClasses || [];
+  if (teacherClasses.length === 0) {
     return res.json(
       new Apiresponse(
         200,
-        {
-          totalAnswered,
-          totalUnanswered,
-          answeredBySubject: answeredSubjectData,
-          pendingBySubject: pendingSubjectData,
-        },
-        "Teacher stats fetched successfully"
+        { totalAnswered: 0, totalUnanswered: 0, answeredBySubject: [], pendingBySubject: [] },
+        "Teacher has no assigned classes"
       )
     );
-  } catch (err) {
-    console.error(err);
-    return res
-      .status(500)
-      .json(new Apiresponse(500, {}, "Error fetching teacher stats"));
   }
+
+  // Build $or query
+  const classFilters = teacherClasses.map((tc) => ({
+    class: tc.class,
+    subject: tc.subject,
+    batch: tc.batch,
+  }));
+
+  // Fetch doubts answered by this teacher for their classes
+  const answeredDoubts = await Doubt.find({
+    answeredBy: teacherId,
+    $or: classFilters,
+  });
+
+  const totalAnswered = answeredDoubts.length;
+
+  // Fetch unanswered doubts for this teacher's classes
+  const unansweredDoubts = await Doubt.find({
+    status: "unanswered",
+    $or: classFilters,
+  });
+
+  const totalUnanswered = unansweredDoubts.length;
+
+  // Group answered by subject
+  const answeredBySubject = answeredDoubts.reduce((acc, d) => {
+    if (!acc[d.subject]) acc[d.subject] = 0;
+    acc[d.subject]++;
+    return acc;
+  }, {});
+
+  // Group unanswered by subject
+  const pendingBySubject = unansweredDoubts.reduce((acc, d) => {
+    if (!acc[d.subject]) acc[d.subject] = 0;
+    acc[d.subject]++;
+    return acc;
+  }, {});
+
+  const answeredSubjectData = Object.keys(answeredBySubject).map((sub) => ({
+    subject: sub,
+    answered: answeredBySubject[sub],
+  }));
+
+  const pendingSubjectData = Object.keys(pendingBySubject).map((sub) => ({
+    subject: sub,
+    pending: pendingBySubject[sub],
+  }));
+
+  return res.json(
+    new Apiresponse(
+      200,
+      {
+        totalAnswered,
+        totalUnanswered,
+        answeredBySubject: answeredSubjectData,
+        pendingBySubject: pendingSubjectData,
+      },
+      "Teacher stats fetched successfully"
+    )
+  );
+} catch (err) {
+  console.error(err);
+  return res
+    .status(500)
+    .json(new Apiresponse(500, {}, "Error fetching teacher stats"));
+}
 });
 
+//Forgot password
 
+const sendOtp = async (req, res) => {
+  try {
+    const otp = generateOtp();
+    const expireTime = new Date(Date.now() + 60 * 60 * 1000);
+    const { email, username, schoolId } = req.body;
+
+    if (!email && !username && schoolId === "0") {
+      return res.json(new Apiresponse(400, {}, "All fields are required"));
+    }
+
+    let user;
+    let recipientEmail;
+    let recipientName;
+
+    if (schoolId !== "0") {
+      user = await School.findOne({ schoolId });
+      if (!user) {
+        return res.json(new Apiresponse(400, {}, "School user not found"));
+      }
+
+      recipientEmail = email || user.email;
+      recipientName = user.schoolName || `School-${schoolId}`;
+
+    } else {
+      user = await User.findOne({ email, username });
+      if (!user) {
+        return res.json(new Apiresponse(400, {}, "User not found"));
+      }
+
+      recipientEmail = email;
+      recipientName = username;
+    }
+
+    if (!recipientEmail) {
+      return res.json(new Apiresponse(400, {}, "No valid email to send OTP"));
+    }
+
+    const otpSent = await sendOTP({ name: recipientName, email: recipientEmail, otp });
+
+    if (otpSent) {
+      user.forget_password_otp = otp;
+      user.forget_password_expiry = expireTime;
+      await user.save();
+
+      return res.json(new Apiresponse(200, { email: recipientEmail }, "Otp sent successfully"));
+    }
+
+    return res.json(new Apiresponse(500, {}, "Failed to send OTP"));
+  } catch (error) {
+    return res.json(new Apiresponse(500, {}, "Something went wrong: " + error.message));
+  }
+};
+
+
+
+const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp, schoolId, username } = req.body;
+
+    if (!email || !otp) {
+      return res.json(new Apiresponse(400, {}, "All fields are required"));
+    }
+
+    let user = "";
+
+    // Check if school or user
+    if (schoolId !== '0') {
+      user = await School.findOne({ schoolId: schoolId });
+      if (!user) {
+        return res.json(new Apiresponse(400, {}, "School user not found"));
+      }
+    } else {
+      user = await User.findOne({ email: email, username: username });
+      if (!user) {
+        return res.json(new Apiresponse(400, {}, "User not found"));
+      }
+    }
+
+    const currentTime = Date.now();
+
+    if (user.forget_password_expiry < currentTime) {
+      return res.json(new Apiresponse(400, {}, "Otp expired"));
+    }
+
+    if (otp !== user.forget_password_otp) {
+      return res.json(new Apiresponse(400, {}, "Otp not matched"));
+    }
+
+    // Clear OTP and expiry based on model type
+    user.set('forget_password_otp', undefined, { strict: false });
+    user.set('forget_password_expiry', undefined, { strict: false });
+    await user.save();
+
+    res.status(200).json(new Apiresponse(200, {}, "Otp verified successfully"));
+
+  } catch (error) {
+    throw new ApiError(500, "Something went wrong " + error.message);
+  }
+};
+
+
+
+const resetpassword = async (req, res) => {
+  try {
+    const { email, newPassword, confirmPassword, username, schoolId } = req.body;
+
+    if (!email || !newPassword || !confirmPassword) {
+      return res.json(new Apiresponse(400, {}, "All fields are required"));
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.json(new Apiresponse(400, {}, "New password and confirm password are not equal"));
+    }
+
+    let user = "";
+
+    if (schoolId !== '0') {
+      user = await School.findOne({ schoolId: schoolId });
+      if (!user) {
+        return res.json(new Apiresponse(400, {}, "School user not found"));
+      }
+    } else {
+      user = await User.findOne({ email: email, username: username });
+      if (!user) {
+        return res.json(new Apiresponse(400, {}, "User not found"));
+      }
+    }
+
+    user.set('forget_password_otp', undefined, { strict: false });
+    user.set('forget_password_expiry', undefined, { strict: false });
+    user.set('password', newPassword, { strict: false });
+    await user.save();
+
+    res.status(200).json(new Apiresponse(200, user, "Password updated successfully"));
+  } catch (error) {
+    throw new ApiError(500, "Something went wrong " + error.message);
+  }
+};
 
 
 
@@ -831,5 +1011,8 @@ export {
   getCurrentSchool,
   loginSchool,
   getStudentStats,
-  getTeacherStats
+  getTeacherStats,
+  sendOtp,
+  verifyOtp,
+  resetpassword
 };

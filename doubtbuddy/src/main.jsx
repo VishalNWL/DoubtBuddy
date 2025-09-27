@@ -21,6 +21,9 @@ import AllowUser from './Pages/AllowUser.jsx'
 import AllowSchool from './Pages/AllowSchool.jsx'
 import SchoolDashBoard from './Pages/SchoolDashBoard.jsx'
 import EditDoubt from './Pages/EditDoubt.jsx'
+import ForgetPassword from './Pages/ForgetPassword.jsx'
+import VerifyOtp from './Pages/VerifyOTP.jsx'
+import ResetPassword from './Pages/ResetPassword.jsx'
 
 
 const router = createBrowserRouter([
@@ -93,7 +96,7 @@ const router = createBrowserRouter([
             )
         },
         {
-            path: "/subject-register",
+            path: "/addsubject",
             element: <SubjectRegister />,
         },
         {
@@ -139,6 +142,18 @@ const router = createBrowserRouter([
         {
             path:'/schooldashboard',
             element:<SchoolDashBoard/>
+        },
+        {
+            path:'/forgotpassword',
+            element:<ForgetPassword/>
+        },
+        {
+            path:'/verify-otp',
+            element:<VerifyOtp/>
+        },
+        {
+            path:"/reset-password",
+            element:<ResetPassword/>
         }
     ],
 },

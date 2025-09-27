@@ -6,6 +6,7 @@ import Axios from '../Utils/Axios';
 import toast from 'react-hot-toast';
 import { Atom } from "react-loading-indicators";
 import SummaryAPi from '../Common/SummaryApi';
+import { Link, useNavigate } from 'react-router-dom';
 import { IoEye, IoEyeOff } from "react-icons/io5"; // 👁️ for password toggle
 
 function Signup() {
@@ -13,7 +14,7 @@ function Signup() {
   const [loading, setLoading] = useState(false);
   const [registerType, setRegisterType] = useState("user"); // user | school
   const [showPassword, setShowPassword] = useState(false); // 🔹 for school password toggle
-
+  const navigate = useNavigate();
   const { handleSubmit, register, watch } = useForm();
   const role = watch("role")?.toLowerCase();
 
@@ -61,6 +62,7 @@ function Signup() {
 
       if (session.data.success) {
         toast.success("Registeration request sent successfully");
+        navigate('/login');
       }
     } catch (err) {
       setError(err.message || "Something went wrong");
@@ -85,6 +87,7 @@ function Signup() {
 
       if (session.data.success) {
         toast.success("School registration request sent successfully");
+        
       }
     } catch (err) {
       setError(err.message || "Something went wrong");
@@ -177,6 +180,15 @@ function Signup() {
               )}
             </Button>
           </div>
+              <div className="mt-2">
+                Already have a account?{" "}
+                <Link
+                  to={"/login"}
+                  className="text-blue-600 hover:underline"
+                >
+                  Login
+                </Link>
+            </div>
         </form>
       )}
 
@@ -188,6 +200,7 @@ function Signup() {
         >
           <div className="space-y-5">
             <Input label="School Name:" placeholder="Enter school name" type="text" {...register("schoolName", { required: true })} />
+            <Input label="Email:" placeholder="Enter your email" type="email" {...register("email", { required: true })} />
             <Input label="Address:" placeholder="Enter address" type="text" {...register("address", { required: true })} />
             <Input label="Pincode:" placeholder="Enter pincode" type="text" {...register("pincode", { required: true })} />
             <Input label="Location:" placeholder="City / State" type="text" {...register("location", { required: true })} />
@@ -221,6 +234,16 @@ function Signup() {
               )}
             </Button>
           </div>
+
+            <div className="mt-2">
+                Already have a account?{" "}
+                <Link
+                  to={"/login"}
+                  className="text-blue-600 hover:underline"
+                >
+                  Login
+                </Link>
+            </div>
         </form>
       )}
     </div>

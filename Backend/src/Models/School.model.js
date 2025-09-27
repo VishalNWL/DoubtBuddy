@@ -9,6 +9,10 @@ const schoolSchema = new Schema(
       required: true,
       trim: true,
     },
+    email:{
+        type:String,
+        required:true
+    },
     address: {
       type: String,
       required: true,
@@ -43,6 +47,16 @@ const schoolSchema = new Schema(
       required: true,
       minlength: 6,
     },
+  forget_password_otp:{
+     type:String,
+     default:null
+  },
+  forget_password_expiry:{
+      type:Date,
+      default:""
+  },
+  
+  
     status: {
       type: String,
       enum: ["pending", "active", "rejected"],

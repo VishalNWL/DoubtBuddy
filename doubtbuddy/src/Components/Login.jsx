@@ -184,6 +184,7 @@ function Login() {
                         <IoEye size={20} />
                       )}
                     </button>
+                     <Link to={'/forgotpassword'}><h5 className="text-blue-700 hover:underline">Forgot Password?</h5></Link>
                   </div>
                 </>
               ) : (
@@ -216,6 +217,7 @@ function Login() {
                         <IoEye size={20} />
                       )}
                     </button>
+                    <Link to={'/forgotpassword'}><h5 className="text-blue-700 hover:underline">Forgot Password?</h5></Link>
                   </div>
                 </>
               )}
@@ -234,7 +236,7 @@ function Login() {
               </Button>
             </div>
 
-            {loginType === "user" && (
+           
               <div className="mt-2">
                 Not registered?{" "}
                 <Link
@@ -244,7 +246,7 @@ function Login() {
                   Register
                 </Link>
               </div>
-            )}
+            
           </form>
         </div>
       </>

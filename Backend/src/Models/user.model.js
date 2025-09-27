@@ -26,6 +26,15 @@ const userSchema = new Schema({
     required: true,
     minlength: 6
   },
+
+  forget_password_otp:{
+     type:String,
+     default:null
+  },
+  forget_password_expiry:{
+      type:Date,
+      default:""
+  },
   
   avatar: {
     type: String,//coudinary url
