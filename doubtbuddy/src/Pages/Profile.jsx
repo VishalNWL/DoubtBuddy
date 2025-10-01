@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button, Input } from '../Components/index';
 import Axios from '../Utils/Axios';
@@ -16,9 +16,10 @@ function Profile() {
   const user = useSelector(state => state.auth).userData;
   const role = user.role;
   const [error, setError] = useState("");
-  const { handleSubmit, register } = useForm();
+  const { handleSubmit, register , formState:{errors}} = useForm();
   const [openEditAvatar, setOpenEditAvatar] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(user.avatar)
+  const [teacherClasses, setTeacherClasses] = useState("");
   const dispatch = useDispatch();
   const [loading, setloading] = useState(false);
   const [avatarUploadingLoader, setavatarUploadingLoader] = useState(false);
@@ -33,6 +34,14 @@ function Profile() {
       console.log(error)
     }
   }
+
+  useEffect(()=>{
+      if(user.role==='teacher'){
+         setTeacherClasses(user.teacherClasses.map((val)=>{
+            return ""+val.batch+val.class+val.subject;
+         }))
+      }
+  },[])
 
   const handleUploadAvatar = async (e) => {
     const file = e.target.files[0];
@@ -112,16 +121,11 @@ function Profile() {
       }
 
 
-      if (data.role === "student") {
-        if (!data.classInfo) throw new Error("Class info is required for students");
+     if (data.role === "student") {
+        if (!data.studentclass || !data.studentbatch) throw new Error("Class and batch is required for students");
 
-        const match = data.classInfo.match(/^(\d+)([A-Z])$/);
-        if (!match) throw new Error("Invalid class format. Use format like 5A");
-
-        const [, classNum, batch] = match;
-
-        data.class = classNum
-        data.batch = batch
+        data.class = data.studentclass;
+        data.batch = data.studentbatch;
 
       }
 
@@ -215,6 +219,7 @@ function Profile() {
                 <Input
                   label="Classes you are teaching"
                   placeholder="e.g., A5Physics, B10Math, C8English"
+                  defaultValue={`${teacherClasses}`}
                   type="text"
                   {...register("classInfo", {
                     required: "Please enter class info for teacher (e.g., A5Physics)",
@@ -226,22 +231,27 @@ function Profile() {
                 />
 
               )}
-
-              {user.role === "student" && (
-                <Input
-                  label="Class and batch"
-                  placeholder="Enter Your Class like 5A"
-                  type="text"
-                  defaultValue={user.class + user.batch}
-                  {...register("classInfo", {
-                    required: "Please enter class info",
-                    pattern: {
-                      value: /^\d+[A-Z]$/,
-                      message: "Use format like 5A",
-                    },
-                  })}
-                />
-              )}
+      {role === "student" && (<>
+              <Input label="Class" placeholder="Enter your class" defaultValue={user.class} type="text" {...register("studentclass", {
+                required: true, pattern: {
+                  value: /^\d+$/,
+                  message: "Class must contain only numbers (e.g., 10, 12)"
+                }
+              })} />
+                <p style={{ color: 'red' }}>
+                     {errors?.studentclass?.message}
+               </p>
+              <Input label="Batch" placeholder="Enter your batch (if not applicable then write A)" defaultValue={user.batch} type="text" {...register("studentbatch", {
+                required: true, pattern: {
+                  value: /^[A-Z]+$/,
+                  message: "Batch must contain only capital letters (e.g., A, BATCHX)"
+                }
+              })} />
+                  <p style={{ color: 'red' }}>
+                       {errors?.studentbatch?.message} 
+                 </p>
+            </>
+            )}
 
               {(user.role === "student" || role === "teacher") && (
                 <>

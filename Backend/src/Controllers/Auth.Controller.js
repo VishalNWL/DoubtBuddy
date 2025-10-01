@@ -61,17 +61,22 @@ const RegisterUser = asyncHandler(async (req, res) => {
       if (!teacherClasses || !Array.isArray(teacherClasses)) {
         return res.status(400).json(new Apiresponse(400, {}, "teacherClasses must be an array for teachers"));
       }
-       userData.teacherClasses = teacherClasses;
+      userData.teacherClasses = teacherClasses;
       //  console.log(teacherClasses)
       userData.school = school;
     }
-
+    
     const user = await User.create(userData);
-
+    
     return res.status(201).json(new Apiresponse(201, user, "User created successfully"));
   } catch (error) {
-    console.error("Register error:", error);
-    throw new ApiError(500, "There is an error while registering the user: " + error.message);
+    if(error.code ===11000){
+    return res.status(500).json(new Apiresponse(500, {},'Username already taken'));
+  }
+  else{
+    return res.status(500).json(new Apiresponse(500, {},'Something went wrong'));
+    
+    }
   }
 });
  
@@ -378,16 +383,73 @@ const gettingPendingUser = async(req,res)=>{
   }
 }
 
-const changestatus = async(req,res)=>{
-  try {
+const gettingPendingStudent=async(req,res)=>{
+   try {
     const userId = req.user;
     const  user = await User.findById(userId);
-    
+
     if(!user){
        return res.status(400).json(new Apiresponse(500,{},"You are not allowed to fetch data" ))
     }
-    if(user.role!=='admin'){
+    if(user.role!=='teacher'){
        return res.status(400).json(new Apiresponse(500,{},"You are not allowed to fetch data" ))
+    }
+
+
+const teacherClasses = user.teacherClasses; // teacher's classes
+
+const allPendingStudents = await User.find({
+  status: "pending",
+ $or: teacherClasses.map(tc => ({
+    class: tc.class,
+    batch: tc.batch
+  }))
+});
+
+    
+    return res.status(200).json(new Apiresponse(200,allPendingStudents,"All pending user fetched successfully"));
+    
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(new Apiresponse(500,{},'Something went wrong'))
+  }
+}
+const gettingPendingTeacher=async(req,res)=>{
+   try {
+    const schoolId = req.user;
+    const  school = await School.findOne(schoolId);
+
+    if(!school){
+       return res.status(400).json(new Apiresponse(500,{},"You are not allowed to fetch data" ))
+    }
+     
+    const allPendingUser = await User.find({status:"pending" ,role:'teacher',school:school.schoolId});
+    
+    return res.status(200).json(new Apiresponse(200,allPendingUser,"All pending user fetched successfully"));
+    
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(new Apiresponse(500,{},'Something went wrong'))
+  }
+}
+
+const changestatus = async(req,res)=>{
+  try {
+    const userId = req.user;
+    const schoolId= req.school;
+
+    let  user = await User.findById(userId);
+
+    if(!user){
+      user = await School.findById(schoolId);
+    }
+  
+    
+    if(!user){
+       return res.status(400).json(new Apiresponse(400,{},"You are not allowed to fetch data" ))
+    }
+    if(user.role==='student'){
+       return res.status(400).json(new Apiresponse(400,{},"You are not allowed to change status" ))
     }
     
     const {Id , status} = req.body;
@@ -503,6 +565,43 @@ const registerSchool = async (req, res) => {
     );
   }
 };
+
+const updateSchool = async(req,res)=>{
+    try {
+      const userId = req.school;
+     
+      if(!userId){
+        return res.status(400).json(new Apiresponse(400,{},"Unauthorized request"));
+      }
+      const {address , classes , contactNo , country, pincode,location,schoolName,email,password=""}=req.body;
+      if(!address || !classes || !contactNo || !country || !pincode || !location || !schoolName || !email){
+        return res.status(400).json(new Apiresponse(400,{},"All fields required"));
+      }
+      
+      const school = await School.findById(userId);
+      
+      if(!school){
+        return res.status(400).json(new Apiresponse(400,{},"School not found"));
+      }
+
+      school.address=address;
+      school.classes = classes;
+      school.contactNo = contactNo;
+      school.country=country;
+      school.pincode = pincode;
+      school.location=location;
+      school.schoolName = schoolName;
+      school.password = password||school.password;
+      school.email = email;
+      await school.save();
+
+      return res.status(200).json(new Apiresponse(200,{school},"User updated successfully"));
+
+    } catch (error) {
+      console.log(error);
+       return res.status(500).json(new Apiresponse(500,{error},"Something went wrong"));
+    }
+}
 
 const getCurrentSchool = asyncHandler(async (req, res) => {
   const school = req.school; // this comes from middleware after verifying token
@@ -849,6 +948,45 @@ try {
 }
 });
 
+
+const getSchoolStats = async (req, res) => {
+  try {
+    const { schoolId } = req.params;
+
+    const classWise = await Doubt.aggregate([
+      { $match: { schoolId } },
+      {
+        $group: {
+          _id: "$class",
+          total: { $sum: 1 },
+          pending: {
+            $sum: { $cond: [{ $eq: ["$status", "unanswered"] }, 1, 0] },
+          },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    const totalDoubts = classWise.reduce((acc, c) => acc + c.total, 0);
+    const totalPending = classWise.reduce((acc, c) => acc + c.pending, 0);
+
+    res.json({
+      success: true,
+      data: {
+        totalDoubts,
+        totalPending,
+        classWise: classWise.map((c) => ({
+          class: c._id,
+          total: c.total,
+          pending: c.pending,
+        })),
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 //Forgot password
 
 const sendOtp = async (req, res) => {
@@ -1004,8 +1142,11 @@ export {
   loginUser,
   getUserById,
   gettingPendingUser,
+  gettingPendingStudent,
+  gettingPendingTeacher,
   changestatus,
   registerSchool,
+  updateSchool,
   changeSchoolStatus,
   gettingPendingSchool,
   getCurrentSchool,
@@ -1014,5 +1155,6 @@ export {
   getTeacherStats,
   sendOtp,
   verifyOtp,
-  resetpassword
+  resetpassword,
+  getSchoolStats
 };

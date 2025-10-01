@@ -15,7 +15,7 @@ function Signup() {
   const [registerType, setRegisterType] = useState("user"); // user | school
   const [showPassword, setShowPassword] = useState(false); // 🔹 for school password toggle
   const navigate = useNavigate();
-  const { handleSubmit, register, watch } = useForm();
+  const { handleSubmit, register, watch , formState:{errors} } = useForm();
   const role = watch("role")?.toLowerCase();
 
   const handleUserSignup = async (data) => {
@@ -45,19 +45,16 @@ function Signup() {
       }
 
       if (data.role === "student") {
-        if (!data.classInfo) throw new Error("Class info is required for students");
+        if (!data.studentclass || !data.studentbatch) throw new Error("Class and batch is required for students");
 
-        const match = data.classInfo.match(/^(\d+)([A-Z])$/);
-        if (!match) throw new Error("Invalid class format. Use format like 5A");
+        data.class = data.studentclass;
+        data.batch = data.studentbatch;
 
-        const [, classNum, batch] = match;
-        data.class = classNum;
-        data.batch = batch;
       }
 
       const session = await Axios({
         ...SummaryAPi.register,
-        data:data
+        data: data
       });
 
       if (session.data.success) {
@@ -65,7 +62,8 @@ function Signup() {
         navigate('/login');
       }
     } catch (err) {
-      setError(err.message || "Something went wrong");
+      console.log(err)
+      setError(err.response.data.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -87,7 +85,7 @@ function Signup() {
 
       if (session.data.success) {
         toast.success("School registration request sent successfully");
-        
+
       }
     } catch (err) {
       setError(err.message || "Something went wrong");
@@ -126,7 +124,7 @@ function Signup() {
         </Button>
       </div>
 
-      {/* USER REGISTER FORM (UNCHANGED) */}
+      {/* USER REGISTER FORM*/}
       {registerType === "user" && (
         <form
           onSubmit={handleSubmit(handleUserSignup)}
@@ -146,29 +144,49 @@ function Signup() {
             {role === "teacher" && (
               <Input label="Classes you are teaching" placeholder="e.g., A5Physics, B10Math" type="text" {...register("classInfo", { required: true })} />
             )}
-            {role === "student" && (
-              <Input label="Class and Batch" placeholder="Enter like 5A" type="text" {...register("classInfo", { required: true })} />
+
+
+            {role === "student" && (<>
+              <Input label="Class" placeholder="Enter your class" type="text" {...register("studentclass", {
+                required: true, pattern: {
+                  value: /^\d+$/,
+                  message: "Class must contain only numbers (e.g., 10, 12)"
+                }
+              })} />
+                <p style={{ color: 'red' }}>
+                     {errors?.studentclass?.message}
+               </p>
+              <Input label="Batch" placeholder="Enter your batch (if not applicable then write A)" type="text" {...register("studentbatch", {
+                required: true, pattern: {
+                  value: /^[A-Z]+$/,
+                  message: "Batch must contain only capital letters (e.g., A, BATCHX)"
+                }
+              })} />
+                  <p style={{ color: 'red' }}>
+                       {errors?.studentbatch?.message} 
+                 </p>
+            </>
             )}
             {(role === "student" || role === "teacher") && (
               <Input label="School:" placeholder="Enter your school name" type="text" {...register("school", { required: true })} />
             )}
 
-      {/* 👁️ PASSWORD FIELD WITH TOGGLE */}
-      <div className="relative">
-        <Input
-          label="Password:"
-          type={showPassword ? "text" : "password"}
-          placeholder="Enter your password"
-          {...register("password", { required: true, minLength: 6 })}
-        />
-        <button
-          type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-10 text-gray-600 hover:text-gray-900"
-        >
-          {showPassword ?<IoEyeOff size={20} /> : <IoEye size={20} />}
-        </button>
-      </div>
+            {/* 👁️ PASSWORD FIELD WITH TOGGLE */}
+            <div className="relative">
+              <Input
+                label="Password:"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                {...register("password", { required: true, minLength: 6 })}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-10 text-gray-600 hover:text-gray-900"
+              >
+                {showPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
+              </button>
+            </div>
 
             <Button type="submit" className="w-full px-4 py-2 rounded-lg bg-blue-600 text-white mt-4" disabled={loading}>
               {loading ? (
@@ -180,15 +198,15 @@ function Signup() {
               )}
             </Button>
           </div>
-              <div className="mt-2">
-                Already have a account?{" "}
-                <Link
-                  to={"/login"}
-                  className="text-blue-600 hover:underline"
-                >
-                  Login
-                </Link>
-            </div>
+          <div className="mt-2">
+            Already have a account?{" "}
+            <Link
+              to={"/login"}
+              className="text-blue-600 hover:underline"
+            >
+              Login
+            </Link>
+          </div>
         </form>
       )}
 
@@ -235,15 +253,15 @@ function Signup() {
             </Button>
           </div>
 
-            <div className="mt-2">
-                Already have a account?{" "}
-                <Link
-                  to={"/login"}
-                  className="text-blue-600 hover:underline"
-                >
-                  Login
-                </Link>
-            </div>
+          <div className="mt-2">
+            Already have a account?{" "}
+            <Link
+              to={"/login"}
+              className="text-blue-600 hover:underline"
+            >
+              Login
+            </Link>
+          </div>
         </form>
       )}
     </div>

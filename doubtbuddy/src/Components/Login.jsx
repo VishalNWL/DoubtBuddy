@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login as authLogin } from "../store/authSlice";
 import { Button, Input, Logo } from "./index.js";
@@ -80,13 +80,20 @@ function Login() {
   }
 };
 
-  if (user && loginType === "user") {
+useEffect(()=>{
+  console.log(user)
+  if (user && loginType === "user" && user?.username) {
     if (user?.role === "teacher") {
       navigate("/teacherdashboard");
     } else if (user?.role === "student") {
       navigate("/studentdashboard");
     }
+   //TODO:Add navigate to admin dashboard
   }
+  else if(user && user?.schoolId){
+    navigate('/schooldashboard')
+  }
+},[user,loginType])
 
   return (
     !user && (

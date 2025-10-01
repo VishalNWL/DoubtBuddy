@@ -36,6 +36,14 @@ const SummaryAPi = {
        url:'/api/v1/auth/get-pending-user',
        method:'get'
     },
+    pendingStudent:{
+      url:'/api/v1/auth/get-pending-student',
+      method:'get'
+    },
+    pendingTeacher:{
+        url:"/api/v1/auth/get-pending-teacher",
+        method:"get"
+    },
     userDetailsById: {
         url: '/api/v1/auth/user-by-id',
         method: 'post'
@@ -47,6 +55,11 @@ const SummaryAPi = {
    teacherStats: {
        url: '/api/v1/auth/teacherstat', // append /:id when calling
        method: 'get'
+   },
+
+   schoolStats:{
+         url:'/api/v1/auth/schoolstat',
+         method:'get'
    },
    
     getSubject: {
@@ -114,6 +127,10 @@ const SummaryAPi = {
     schoolLogin:{
        url:'/api/v1/auth/loginschool',
        method:'post'
+    },
+    updateSchool:{
+        url:'/api/v1/auth/update-school',
+        method:'post'
     },
     schoolStatus:{
         url:'/api/v1/auth/changeschoolstatus',

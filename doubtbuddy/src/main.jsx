@@ -24,6 +24,11 @@ import EditDoubt from './Pages/EditDoubt.jsx'
 import ForgetPassword from './Pages/ForgetPassword.jsx'
 import VerifyOtp from './Pages/VerifyOTP.jsx'
 import ResetPassword from './Pages/ResetPassword.jsx'
+import AllowStudent from './Pages/AllowStudent.jsx'
+import AllowTeacher from './Pages/AllowTeacher.jsx'
+import SchoolProfile from './Pages/SchoolProfile.jsx'
+import SchoolStatsPage from './Pages/SchoolStatistics.jsx'
+import ClassDetails from './Pages/ClassDetails.jsx'
 
 
 const router = createBrowserRouter([
@@ -58,6 +63,14 @@ const router = createBrowserRouter([
                     <StudentDashBoard />
                 </AuthLayout>
             ),
+        },
+        {
+            path:'/schooldashboard',
+            element:(
+                <AuthLayout authentication={true}>
+                    <SchoolDashBoard/>
+                </AuthLayout>
+            )
         },
 
         {
@@ -108,6 +121,14 @@ const router = createBrowserRouter([
             ),
         },
         {
+           path:'profile-school',
+           element:(
+              <AuthLayout authentication={true}>
+                <SchoolProfile/>
+              </AuthLayout>
+           )
+        },
+        {
             path: "/statistics",
             element: (
             <AuthLayout authentication={true}>
@@ -116,7 +137,15 @@ const router = createBrowserRouter([
             ),
         },
         {
-            path: "/discussion",
+            path:'/statistics-school',
+            element:(
+                <AuthLayout authentication={true}>
+                    <SchoolStatsPage/>
+                </AuthLayout>
+               )
+            },
+            {
+                path: "/discussion",
             element: (
             <AuthLayout authentication={true}>
             <Discussion/>
@@ -136,12 +165,16 @@ const router = createBrowserRouter([
             element:<AllowUser/>
         },
         {
-            path:'/allowSchool',
-            element:<AllowSchool/>
+            path:'/allowStudent',
+            element:<AllowStudent/>
         },
         {
-            path:'/schooldashboard',
-            element:<SchoolDashBoard/>
+            path:'/allowTeacher',
+            element:<AllowTeacher/>
+        },
+        {
+            path:'/allowSchool',
+            element:<AllowSchool/>
         },
         {
             path:'/forgotpassword',
@@ -154,6 +187,10 @@ const router = createBrowserRouter([
         {
             path:"/reset-password",
             element:<ResetPassword/>
+        },
+        {
+            path:'/class-details/:class',
+            element:<ClassDetails/>
         }
     ],
 },

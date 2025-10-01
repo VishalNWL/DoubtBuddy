@@ -34,17 +34,6 @@ const createDoubt = asyncHandler(async (req, res) => {
 
     const { questionDescription, subject, title,questionPhoto } = req.body;
 
-    // const questionfilepath = req.file?.path;
-
-    // let questionfile = '';
-    // if (questionfilepath) {
-    //   questionfile = await uploadOnCloudinary(questionfilepath);
-    // }
-
-    // if (!questionDescription && !questionfilepath) {
-    //   res.status(400).json(new Apiresponse(400, {}, "There is no question entered"));
-    // }
-
     const question = await Doubt.create({
       title: title,
       studentname: user.username,
@@ -377,6 +366,7 @@ const getUnansweredDoubts = asyncHandler(async (req, res) => {
 
   res.status(200).json(new Apiresponse(200, doubts, "Unanswered doubts fetched"));
 });
+
 
 
 export {

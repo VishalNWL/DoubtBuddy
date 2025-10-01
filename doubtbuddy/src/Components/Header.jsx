@@ -17,27 +17,37 @@ const Header = () => {
    
   const navLinks = [
     { href: '/', label: 'Home' },
-    { href: '/profile', label: 'Profile' },
-    { href: '/statistics', label: 'Statistics' },
-  ];
+];
 
-  if (user?.role === 'admin') {
+if (user?.role === 'admin') {
     navLinks.push({ href: '/allowUser', label: 'Register User' });
     navLinks.push({ href: '/allowSchool', label: 'Register School' });
-  }
+    navLinks.push( { href: '/profile', label: 'Profile' });
+}
 
-  if (user?.role === 'student') {
+if (user?.role === 'student') {
     navLinks.push({ href: '/discussion', label: 'Discussion' });
-  }
+    navLinks.push( { href: '/profile', label: 'Profile' });
+    navLinks.push({ href: '/statistics', label: 'Statistics' })
+}
 
-  if(user?.schoolName){
-    navLinks.push({href:'/addsubject', label:'Add Subject'})
-  }
+if(user?.role==='teacher'){
+    navLinks.push({ href: '/allowStudent', label: 'Register Student' });
+    navLinks.push( { href: '/profile', label: 'Profile' });
+    navLinks.push({ href: '/statistics', label: 'Statistics' })
+}
+
+if(user?.schoolName){
+    navLinks.push( { href: '/profile-school', label: 'Profile' });
+    navLinks.push({href:'/addsubject', label:'Add Subject'});
+    navLinks.push({ href: '/allowTeacher', label: 'Register Teacher' });
+    navLinks.push({ href: '/statistics-school', label: 'Statistics' })
+}
 
 
-    const handleLogout = async () => {
-        try {
-
+const handleLogout = async () => {
+    try {
+        
             const response = await Axios({
                 ...SummaryAPi.logout
             })

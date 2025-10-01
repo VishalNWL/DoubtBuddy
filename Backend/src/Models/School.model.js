@@ -42,6 +42,10 @@ const schoolSchema = new Schema(
       unique: true,
       trim: true,
     },
+    classes:{
+        type:[Number],
+        required:true
+    },
     password: {
       type: String,
       required: true,

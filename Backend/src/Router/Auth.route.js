@@ -20,7 +20,11 @@ import {
   getTeacherStats,
   sendOtp,
   verifyOtp,
-  resetpassword
+  resetpassword,
+  gettingPendingStudent,
+  gettingPendingTeacher,
+  updateSchool,
+  getSchoolStats
 } from '../Controllers/Auth.Controller.js';
 
 import { jwtverify } from '../Middlewares/auth.middleware.js';
@@ -84,12 +88,24 @@ router
 .get(jwtverify,gettingPendingUser);
 
 router
+.route('/get-pending-student')
+.get(jwtverify,gettingPendingStudent);
+
+router
+.route('/get-pending-teacher')
+.get(jwtverify,gettingPendingTeacher);
+
+router
 .route('/changestatus')
 .post(jwtverify,changestatus);
 
 router
 .route('/registerschool')
 .post(registerSchool);
+
+router
+ .route('/update-school')
+ .post(jwtverify,updateSchool)
 
 router
 .route('/changeschoolstatus')
@@ -112,6 +128,8 @@ router.route("/studentstat/:id").get(getStudentStats);
 
 // GET /api/stats/teacher/:id
 router.route("/teacherstat/:id").get(getTeacherStats);
+
+router.route('/schoolstat/:schoolId').get(getSchoolStats)
 
 router.route("/sendotp").post(sendOtp);
 router.route("/verifyotp").post(verifyOtp);

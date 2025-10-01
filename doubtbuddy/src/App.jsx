@@ -35,18 +35,6 @@ useEffect(() => {
   })();
 }, []);
 
-useEffect(()=>{
-     const fun =async()=>{
-        const res=await Axios({
-            url:'/api/v1/auth/otp',
-             method:'get'
-        })
-        console.log(res);
-     }
-
-     fun();
-})
-
   
   return !loading ? (
     <main>
