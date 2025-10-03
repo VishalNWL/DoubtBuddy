@@ -130,7 +130,7 @@ useEffect(()=>{
        value={choosensubject}
        onChange={(e)=>{
             setchoosensubject(e.target.value);
-       }}
+       }} 
        className="w-40"
      />
     </div>

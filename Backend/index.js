@@ -9,7 +9,7 @@ import { Server } from "socket.io";
 import { socketAuth } from "./src/sockets/socketAuth.js";
 import registerDiscussionHandlers from "./src/sockets/discussion.js";
 
-cloudinary.config({
+cloudinary.config({ 
   cloud_name: process.env.cloud_name,
   api_key: process.env.api_key,
   api_secret: process.env.api_secret,
@@ -23,7 +23,7 @@ dbconnection().then(() => {
 
   // 2) Attach Socket.IO to it
   const io = new Server(server, {
-    cors: {
+    cors: { 
       origin: [
         "http://localhost:5173",
         "https://doubt-buddy.vercel.app",

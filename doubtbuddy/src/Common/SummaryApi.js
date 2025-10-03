@@ -148,6 +148,22 @@ const SummaryAPi = {
   url: "/api/v1/discussion/history",
   method: "post"
 },
+  
+studentsBySchoolClass:{
+     url:'/api/v1/school/students',
+     method:'post'
+},
+TeachersBySchoolClass:{
+    url:'/api/v1/school/teachers',
+    method:'post'
+},
+
+getUserProfileForSchool:{
+    url:'/api/v1/school/profile',
+    method:'get'
+}
+
+
 }
 
 

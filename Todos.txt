@@ -1,0 +1,6 @@
+1.How to enter teacher's classes while registering and updating
+2.What to show when school click on class
+3.Does we have to take input of batches also along with class while registering school if yes then how
+4.And if not then how to show students of different batches and also how to show teachers
+
+5.How to include streams after 10th class

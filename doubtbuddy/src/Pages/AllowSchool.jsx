@@ -4,7 +4,7 @@ import SummaryAPi from "../Common/SummaryApi";
 import { TiTick } from "react-icons/ti";
 import { IoMdClose } from "react-icons/io";
 import toast from "react-hot-toast";
-
+ 
 function AllowSchool() {
   const [pendingSchools, setPendingSchools] = useState([]);
 

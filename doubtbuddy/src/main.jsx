@@ -29,6 +29,7 @@ import AllowTeacher from './Pages/AllowTeacher.jsx'
 import SchoolProfile from './Pages/SchoolProfile.jsx'
 import SchoolStatsPage from './Pages/SchoolStatistics.jsx'
 import ClassDetails from './Pages/ClassDetails.jsx'
+import StudentTeacherForSchool from './Pages/StudentTeacherOfSchool.jsx'
 
 
 const router = createBrowserRouter([
@@ -189,8 +190,12 @@ const router = createBrowserRouter([
             element:<ResetPassword/>
         },
         {
-            path:'/class-details/:class',
+            path:'/class-details/:Class',
             element:<ClassDetails/>
+        },
+        {
+            path:'/school-user/:userId',
+            element:<StudentTeacherForSchool/>
         }
     ],
 },

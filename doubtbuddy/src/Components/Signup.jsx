@@ -9,7 +9,7 @@ import SummaryAPi from '../Common/SummaryApi';
 import { Link, useNavigate } from 'react-router-dom';
 import { IoEye, IoEyeOff } from "react-icons/io5"; // 👁️ for password toggle
 
-function Signup() {
+function Signup() { 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [registerType, setRegisterType] = useState("user"); // user | school

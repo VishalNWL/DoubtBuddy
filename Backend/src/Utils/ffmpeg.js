@@ -7,7 +7,7 @@ export const getVideoDuration = (videoPath) => {
   return new Promise((resolve, reject) => {
     // ffprobe is a method provided by fluent-ffmpeg to analyze video metadata
     ffmpeg.ffprobe(videoPath, (err, metadata) => {
-      if (err) {
+      if (err) { 
         // If an error occurs, reject the Promise with an error message
         reject("Error extracting video duration");
       } else {
