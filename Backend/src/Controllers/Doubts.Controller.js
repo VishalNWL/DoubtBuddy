@@ -32,7 +32,7 @@ const createDoubt = asyncHandler(async (req, res) => {
 
     const student = await User.findById(user._id);
 
-    const { questionDescription, subject, title,questionPhoto } = req.body;
+    const { questionDescription, subject, title,questionPhoto} = req.body;
 
     const question = await Doubt.create({
       title: title,

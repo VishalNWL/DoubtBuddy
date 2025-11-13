@@ -74,12 +74,12 @@ status: {
       return this.role === 'student';
     }
   },
-  stream: {
-    type: String,
-    required: function () {
-      return this.role === 'student' && this.class>10;
-    },
-  },
+  // stream: {
+  //   type: String,
+  //   required: function () {
+  //     return this.role === 'student' && this.class>10;
+  //   },
+  // },
 
   AskedQuestions:{
       type:[{type: Schema.Types.ObjectId, ref: 'Doubt' }],
