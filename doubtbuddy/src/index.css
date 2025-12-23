@@ -12,3 +12,6 @@
   }
 }
 
+svg *:focus {
+  outline: none !important;
+}

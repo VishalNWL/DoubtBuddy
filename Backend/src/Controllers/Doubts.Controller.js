@@ -18,6 +18,7 @@ import { uploadOnCloudinary } from "../Utils/cloudinary.js"
 import { Apiresponse } from "../Utils/Apiresponse.js"
 import { getCurrentAccount } from "./Auth.Controller.js"
 import { User } from "../Models/user.model.js"
+import { deleteFromCloudinary } from "../Utils/DeleteCloudinary.js"
 
 
 //createDoubt
@@ -278,12 +279,61 @@ const deleteDoubt = asyncHandler(async (req, res) => {
     $and: [{ askedBy: req.user._id }, { _id: doubtid }]
   })
 
-  if (!doubtid) {
+  if (!doubt) {
     res.status(400).json(new Apiresponse(400, {}, "Doubt cannot be deleted"));
   }
 
+  await deleteFromCloudinary(doubt.questionFile);
+  
   res.status(200)
-    .json(new Apiresponse(200, doubt, "Doubt deleted successfylly"));
+  .json(new Apiresponse(200, doubt, "Doubt deleted successfylly"));
+})
+
+//Delete doubt File
+const deleteDoubtFile=asyncHandler(async (req,res) => {
+  try {
+    const {URL,doubtid} = req.body;
+    if(!URL){
+      res.status(400).json(new Apiresponse(400,{},"Doubt URL is missing"));
+      return;
+    }
+    
+    const doubt = await Doubt.findById(doubtid);
+    console.log(doubt)
+    if(!doubt){
+      
+      res.status(400).json(new Apiresponse(400,{},"Doubt not found"));
+      return;
+    }
+    
+        let response=await deleteFromCloudinary(URL);
+        if(response){
+        doubt.questionFile="";
+        await doubt.save();
+
+        return res.status(200).json(new Apiresponse(200,{},"File deleted successfully"));
+      }
+      
+      return res.status(500).json(new Apiresponse(500,{},"There is some problem while deleting file"));
+
+    } catch (error) {
+      console.log(error)
+      res.status(500).json(new Apiresponse(500,{},"Something went wrong while deleting doubt"));
+    }
+  })
+  
+  const deleteFile=asyncHandler(async(req,res)=>{
+  try {
+
+    const {URL} = req.body;
+
+    await deleteFromCloudinary(URL);
+    return res.status(200).json(new Apiresponse(200,{},"File deleted from cloudinary"));
+    
+  } catch (error) {
+    
+    res.status(500).json(new Apiresponse(500,{},"Something went wrong while deleting doubt"));
+  }
 })
 
 //# Fetching all doubts for the admin dashbord purpose
@@ -378,6 +428,8 @@ export {
   getDoubtsBySubject_teacher,
   getDoubtById,
   deleteDoubt,
+  deleteDoubtFile,
+  deleteFile,
   getAllDoubts,
   answerDoubt,
   getUnansweredDoubts,

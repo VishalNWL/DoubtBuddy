@@ -31,7 +31,7 @@ function Solvedoubt() {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadFileURL,setUploadFileURL]= useState("")
   const [fileUploadingLoader , setFileUploadingLoader] = useState(false);
-
+const [fileDeletingLoader,setFileDeletingLoader]=useState(false);
   const queryParams = new URLSearchParams(location.search);
   const student = queryParams.get("student") || "Vishal Nemiwal";
   const title = queryParams.get("title") || "Sir, how can we calculate speed of light without having an expensive instrument.";
@@ -104,9 +104,39 @@ function Solvedoubt() {
     })();
   },[id]);
 
+
+
+
+  const handleDeleteFile=async()=>{
+     try {
+       setFileDeletingLoader(true)
+      
+     const response=  await Axios({
+        ...SummaryAPi.deleteFile,
+        data:{URL:uploadFileURL}
+       })
+
+       if(response.data.success){
+       setUploadFileURL("");
+       setFile(null);
+       toast.success("File removed successfully");
+       return;
+       }
+       toast.error("There is some error while deleting the file try again")
+
+     } catch (error) {
+       console.log("something went wrong while deleting file in edit",error);
+       toast.error("Something went wrong while deleting file");
+
+     }
+     finally{
+      setFileDeletingLoader(false);
+     }
+  }
+
   return (
     <>
-      <div className='px-4'>
+      <div className='px-4 md:px-[5rem] flex-col items-center justify-center'>
         <div name='questiondiv'>
           <div className='flex w-full justify-around'>
             <span><b>Student:</b> {student}</span>
@@ -150,10 +180,28 @@ function Solvedoubt() {
           rows={4}
         />
 
+        {uploadFileURL && (
+                  <div className="mt-3 flex items-center justify-between">
+                    
+                    <Button
+                      className={`bg-red-500 text-white rounded ml-2 ${fileDeletingLoader?'disabled opacity-50 cursor-not-allowed':''}`}
+                      onClick={() =>handleDeleteFile()}
+                    >
+                      {fileDeletingLoader?"Deleting...":"Delete"}
+                    </Button>
+                    <Button
+                      className={`bg-blue-500 text-white rounded ml-2 ${fileDeletingLoader?'disabled opacity-50 cursor-not-allowed':''}`}
+                      onClick={() => window.open(uploadFileURL, "_blank")}
+                    >
+                      File
+                    </Button>
+                  </div>
+                )}
+
         {/* File upload drag and drop */}
         {!fileUploadingLoader ? (
           <div
-            className={`border-2 border-dashed ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-400'} p-6 rounded-md text-center cursor-pointer mt-4`}
+            className={`border-2 ${!file?'hidden md:block':''} border-dashed ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-400'} p-6 rounded-md text-center cursor-pointer mt-4`}
             onDragOver={(e) => {
               e.preventDefault();
               setIsDragging(true);
@@ -210,12 +258,12 @@ function Solvedoubt() {
 
         {/* Submit button with loading state */}
         <Button
-          className="w-full bg-blue-600 text-white py-2 mt-4 rounded hover:bg-blue-700 shadow-lg"
+          className=" bg-blue-600 text-white py-2 mt-4 rounded hover:bg-blue-700 shadow-lg"
           onClick={handleUpload}
           disabled={loading || (!uploadFileURL && !anstxt)}
         >
           {loading 
-            ? <div className='scale-50 h-7 flex justify-center items-center'><Atom color={["#ffff"]}/></div> 
+            ? <div className='scale-50 h-7 flex justify-center items-center '><Atom color={["#ffff"]}/></div> 
             : "Submit Solution"}
         </Button>
       </div>

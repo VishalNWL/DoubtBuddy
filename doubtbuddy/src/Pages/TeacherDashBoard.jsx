@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Axios from '../Utils/Axios.js';
 import SummaryAPi from '../Common/SummaryApi.js';
+import NoData from '../Components/ui/Nodata.jsx';
 
 dayjs.extend(relativeTime);
 
@@ -135,7 +136,7 @@ function TeacherDashBoard() {
         {
           alldoubt.length === 0 &&
           <div className='mt-10'>
-            No doubts
+            <NoData/>
           </div>
         }
       </div>

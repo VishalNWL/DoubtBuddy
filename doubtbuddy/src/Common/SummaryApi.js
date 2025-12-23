@@ -87,6 +87,14 @@ const SummaryAPi = {
         method: 'post'
     }
     ,
+    deleteDoubtFile: {
+        url: "/api/v1/doubts/delete-doubt-file",
+        method: "post"
+    },
+    deleteFile: {
+        url: "/api/v1/doubts/delete-file",
+        method: "post"
+    },
     deleteDoubtById: {
         url: "/api/v1/doubts/delete",
         method: "post"

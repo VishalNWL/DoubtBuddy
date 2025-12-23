@@ -46,18 +46,18 @@ import authRouter from "./Router/Auth.route.js";
 import classInfoRouter from "./Router/Classinfo.route.js";
 import doubtsRouter from "./Router/Doubts.route.js";
 import uploadRouter from "./Router/upload.route.js";
-import discussionRoutes from "./Router/Discussion.route.js";
+
 import schoolRouter from './Router/School.route.js'
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/classinfo", classInfoRouter);
 app.use("/api/v1/doubts", doubtsRouter);
 app.use('/api/file',uploadRouter);
-app.use("/api/v1/discussion", discussionRoutes);
+
 app.use('/api/v1/school',schoolRouter);
  
 app.use((req, res) => {
-  res.status(404).json({ success: false, message: "Route not found" });
+  res.status(404).json({ success: false, message: "Route not found" }); 
 });
 
 export { app };

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { useState } from 'react';
 import { FaUserCircle } from 'react-icons/fa';
+import { CiMenuBurger } from "react-icons/ci";
 import { Link, useNavigate } from 'react-router-dom';
 import Axios from '../Utils/Axios';
 import SummaryAPi from '../Common/SummaryApi';
@@ -26,7 +27,7 @@ if (user?.role === 'admin') {
 }
 
 if (user?.role === 'student') {
-    navLinks.push({ href: '/discussion', label: 'Discussion' });
+   
     navLinks.push( { href: '/profile', label: 'Profile' });
     navLinks.push({ href: '/statistics', label: 'Statistics' })
 }
@@ -99,7 +100,7 @@ const handleLogout = async () => {
                 aria-label="Open menu"
                 onClick={() => setMobileMenuOpen(true)}
             >
-                <FaUserCircle />
+                <CiMenuBurger/>
             </button>
 
 

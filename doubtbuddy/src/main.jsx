@@ -16,7 +16,6 @@ import TeacherDashBoard from './Pages/TeacherDashBoard.jsx'
 import StudentDashBoard from './Pages/StudentDashBoard.jsx'
 import Profile from './Pages/Profile.jsx'
 import Statistics from './Pages/Statistics.jsx'
-import Discussion from './Pages/Discussion.jsx'
 import AllowUser from './Pages/AllowUser.jsx'
 import AllowSchool from './Pages/AllowSchool.jsx'
 import SchoolDashBoard from './Pages/SchoolDashBoard.jsx'
@@ -145,14 +144,7 @@ const router = createBrowserRouter([
                 </AuthLayout>
                )
             },
-            {
-                path: "/discussion",
-            element: (
-            <AuthLayout authentication={true}>
-            <Discussion/>
-            </AuthLayout>
-            ),
-        },
+           
         {
             path: "/signup",
             element: (

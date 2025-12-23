@@ -9,6 +9,7 @@ import UploadImage from '../Utils/UploadImage';
 import {Atom} from 'react-loading-indicators'
 import toast from 'react-hot-toast';
 import { ClipLoader } from "react-spinners";
+import axios from 'axios';
 
 function CreateDoubt() {
   const [subject, setSubject] = useState('');
@@ -25,6 +26,7 @@ function CreateDoubt() {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadFileURL,setUploadFileURL]=useState("")
   const [fileUploadingLoader , setFileUploadingLoader] = useState(false);
+  const [fileDeletingLoader,setFileDeletingLoader]=useState(false);
 
   const user = useSelector((state)=>state.auth).userData;
   // console.log(user)
@@ -91,6 +93,7 @@ function CreateDoubt() {
     const payload = {
   askedBy: user._id,
   subject,
+  schoolId:user.school,
   title: title.trim(),
   questionDescription: description.trim(),
   questionPhoto: uploadFileURL, // plain URL
@@ -128,6 +131,33 @@ function CreateDoubt() {
     }
   };
 
+
+ const handleDeleteFile=async()=>{
+     try {
+       setFileDeletingLoader(true)
+      
+     const response=  await Axios({
+        ...SummaryAPi.deleteFile,
+        data:{URL:uploadFileURL}
+       })
+
+       if(response.data.success){
+       setUploadFileURL("");
+       setFile(null);
+       toast.success("File removed successfully");
+       return;
+       }
+       toast.error("There is some error while deleting the file try again")
+
+     } catch (error) {
+       console.log("something went wrong while deleting file in edit",error);
+       toast.error("Something went wrong while deleting file");
+
+     }
+     finally{
+      setFileDeletingLoader(false);
+     }
+  }
   return (
     <>
       <div className="max-w-xl mx-auto mt-6 p-4 bg-white shadow-md rounded-md">
@@ -168,8 +198,25 @@ function CreateDoubt() {
  {
   !fileUploadingLoader ?(
      <div>
+       {uploadFileURL && (
+                <div className="mb-2 flex items-center justify-between">
+                  
+                  <Button
+                    className={`bg-red-500 text-white rounded ml-2 ${fileDeletingLoader?'disabled opacity-50 cursor-not-allowed':''}`}
+                    onClick={() =>handleDeleteFile()}
+                  >
+                    {fileDeletingLoader?"Deleting...":"Delete"}
+                  </Button>
+                  <Button
+                    className={`bg-blue-500 text-white rounded ml-2 ${fileDeletingLoader?'disabled opacity-50 cursor-not-allowed':''}`}
+                    onClick={() => window.open(uploadFileURL, "_blank")}
+                  >
+                    File
+                  </Button>
+                </div>
+              )}
       <div
-  className={`border-2 border-dashed ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-400'} p-6 rounded-md text-center cursor-pointer mt-4`}
+  className={`border-2 border-dashed ${!uploadFileURL?'hidden md:block':'block'} ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-400'} p-6 rounded-md text-center cursor-pointer mt-4`}
   onDragOver={(e) => {
     e.preventDefault();
     setIsDragging(true);
@@ -200,7 +247,7 @@ function CreateDoubt() {
 
   {!file && <p className="text-gray-600">📁 Drag and drop an image/video here, or click to select</p>}
 {file && (
-  <div className="mt-3 text-green-600 break-words">
+  <div className="mt-3 text-green-600 break-words" onClick={()=> window.open(uploadFileURL, "_blank")}>
     Selected file: <strong>{file.name}</strong> ({filetype})
   </div>
 )}

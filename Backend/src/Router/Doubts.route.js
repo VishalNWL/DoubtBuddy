@@ -11,7 +11,9 @@ import {
   answerDoubt,
   getUnansweredDoubts,
   getTotalDoubtForTeacher,
-  updateDoubt
+  updateDoubt,
+  deleteDoubtFile,
+  deleteFile
 } from '../Controllers/Doubts.Controller.js';
 
 import { jwtverify } from "../Middlewares/auth.middleware.js";
@@ -72,6 +74,16 @@ router
 router
   .route("/answer")
   .post(jwtverify,answerDoubt);
+  
+//Delete doubt file
+  router
+    .route("/delete-doubt-file")
+    .post(jwtverify, deleteDoubtFile);
+
+  router
+    .route("/delete-file")
+    .post(jwtverify, deleteFile);
+
 
 // Delete doubt
 router

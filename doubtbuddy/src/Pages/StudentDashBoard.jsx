@@ -14,6 +14,8 @@ import SummaryAPi from '../Common/SummaryApi.js';
 import { MdDelete } from "react-icons/md";
 import { MdEdit } from "react-icons/md";
 import { jsx } from 'react/jsx-runtime';
+import NoData from '../Components/ui/Nodata.jsx'
+import toast from 'react-hot-toast';
 dayjs.extend(relativeTime);
 
 function StudentDashBoard() {
@@ -89,7 +91,10 @@ const handlesearch = ()=>{
 
 const handleDelete = async(id)=>{
     try {
-      const deleteRef = await Axios({
+
+       const result = confirm("Are you sure you want to delete this doubt?");
+       if(result){
+         const deleteRef = await Axios({
         ...SummaryAPi.deleteDoubtById,
         data:{doubtid:id}
       })
@@ -97,10 +102,13 @@ const handleDelete = async(id)=>{
        if(deleteRef.data.success){
 
          fetchdoubts();
+         toast.success("Doubt Deleted Successfully");
+       }
        }
 
     } catch (error) {
       console.log(error)
+      toast.error("There is some error while deleting doubt");
     }
 }
 
@@ -173,7 +181,7 @@ useEffect(()=>{
         {
           showdoubts.length === 0 &&
           <div className='mt-10'>
-            No doubts
+             <NoData/>
           </div>
         }
       </div>

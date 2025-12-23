@@ -57,24 +57,24 @@ function StatsPage() {
   const pieData =
     user.role === "student"
       ? stats.doubtsBySubject.map((d) => ({
-          subject: d.subject,
-          count: d.total,
-        }))
+        subject: d.subject,
+        count: d.total,
+      }))
       : stats.answeredBySubject.map((d) => ({
-          subject: d.subject,
-          count: d.answered,
-        }));
+        subject: d.subject,
+        count: d.answered,
+      }));
 
   const pendingPieData =
     user.role === "student"
       ? stats.doubtsBySubject.map((d) => ({
-          subject: d.subject,
-          count: d.pending,
-        }))
+        subject: d.subject,
+        count: d.pending,
+      }))
       : stats.pendingBySubject.map((d) => ({
-          subject: d.subject,
-          count: d.pending,
-        }));
+        subject: d.subject,
+        count: d.pending,
+      }));
 
   return (
     <div className="max-w-5xl mx-auto mt-8 p-4">
@@ -83,7 +83,7 @@ function StatsPage() {
       </h2>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <Card className="bg-blue-100 shadow-md">
           <CardContent className="p-4 text-center">
             <p className="text-lg font-semibold">
@@ -123,14 +123,22 @@ function StatsPage() {
                   cy="50%"
                   outerRadius={100}
                   label
+                  activeIndex={-1}
+                  activeShape={null}
+                  stroke="none"
+                  focusable={false}
+                  isAnimationActive={false}
                 >
                   {pieData.map((_, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={COLORS[index % COLORS.length]}
+                      stroke="none"
+                      focusable={false}
                     />
                   ))}
                 </Pie>
+
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
@@ -153,14 +161,22 @@ function StatsPage() {
                   cy="50%"
                   outerRadius={100}
                   label
+                  activeIndex={-1}
+                  activeShape={null}
+                  stroke="none"
+                  focusable={false}
+                  isAnimationActive={false}
                 >
                   {pendingPieData.map((_, index) => (
                     <Cell
                       key={`cell-pending-${index}`}
                       fill={COLORS[index % COLORS.length]}
+                      stroke="none"
+                      focusable={false}
                     />
                   ))}
                 </Pie>
+
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
