@@ -1,17 +1,38 @@
-import { Router} from "express";
+import { Router } from "express";
+
 import {
-    addClass,
-    getsubject,
-    updateClass
-}   from '../Controllers/Subjects.Controller.js'
+  addClass,
+  updateClass,
+  getSubjects,
+  getClassesForSchool
+} from "../Controllers/Subjects.Controller.js";
 
-import {jwtverify} from '../Middlewares/auth.middleware.js'
-
+import { jwtverify } from "../Middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.route('/add-class').post(addClass);
-router.route('/update-class').put(jwtverify,updateClass);
-router.route('/getsubject').post(jwtverify,getsubject);
+/**
+ * Add a new class with subjects
+ */
+router.route("/add-class").post(jwtverify, addClass);
+
+/**
+ * Update subjects / optional subjects for a class
+ */
+router.route("/update-class").post( jwtverify, updateClass);
+
+/**
+ * Get subjects for a class (and stream)
+ * example:
+ *  /get-subjects?school=ABC&Class=11&stream=Science
+ */
+router.route("/get-subjects").post(jwtverify, getSubjects);
+
+/**
+ * Get all classes registered in a school
+ * example:
+ *  /classes?school=ABC
+ */
+router.route("/classes").get(jwtverify, getClassesForSchool);
 
 export default router;

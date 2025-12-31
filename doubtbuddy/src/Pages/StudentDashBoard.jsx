@@ -56,17 +56,22 @@ function StudentDashBoard() {
   
           setanswerddbt(answereddbt);
           setpendingdoubt(unanswereddoubt);
+
+          const stream = user.class>10 ? user.stream : null;
            
          let subjects=await Axios({
           ...SummaryAPi.getSubject,
-           data:{Class:user.class}
+           data:{Class:user.class , school:user.school , stream}
          })
-
            if(!subjects.data.success){
             throw new Error(`Request failed`)
           }
           
-          subjects=await subjects.data.data;
+          subjects=await subjects.data.data.subjects;
+          
+          if(user.class>10){
+             subjects.push(user.optionalSubject);
+          }
           setsubject(subjects)
 
     } catch (error) {

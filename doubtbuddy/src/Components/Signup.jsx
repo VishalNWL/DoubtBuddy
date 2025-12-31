@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button, Input, Logo, Select } from './index';
 import { useSelector } from 'react-redux';
 import Axios from '../Utils/Axios';
 import toast from 'react-hot-toast';
 import { Atom } from "react-loading-indicators";
+import SchoolSignup from "./SchoolSignup.jsx";
 import SummaryAPi from '../Common/SummaryApi';
 import { Link, useNavigate } from 'react-router-dom';
 import { IoEye, IoEyeOff } from "react-icons/io5"; // 👁️ for password toggle
@@ -14,9 +15,33 @@ function Signup() {
   const [loading, setLoading] = useState(false);
   const [registerType, setRegisterType] = useState("user"); // user | school
   const [showPassword, setShowPassword] = useState(false); // 🔹 for school password toggle
+  const [school ,setSchool] = useState("");
   const navigate = useNavigate();
-  const { handleSubmit, register, watch , formState:{errors} } = useForm();
+ const { handleSubmit, register, watch, setValue, formState:{errors} } = useForm();
   const role = watch("role")?.toLowerCase();
+  const [entries, setEntries] = useState([]);
+const [current, setCurrent] = useState({
+  class: "",
+  batch: "",
+  subject: ""
+});
+const [schoolData, setSchoolData] = useState(null);
+const [availableBatches, setAvailableBatches] = useState([]);
+const [availableSubjects, setAvailableSubjects] = useState([]);
+const [subjectSearch, setSubjectSearch] = useState("");
+const [coreSubjects, setCoreSubjects] = useState([]);
+const [optionalSubjects, setOptionalSubjects] = useState([]);
+
+const [studentClass, setStudentClass] = useState("");
+const [studentBatch, setStudentBatch] = useState("");
+const [studentStream, setStudentStream] = useState("");
+const [studentOptionalSubject, setStudentOptionalSubject] = useState("");
+
+useEffect(() => {
+  setValue("classInfo", JSON.stringify(entries || []));
+}, [entries, setValue]);
+
+
 
   const handleUserSignup = async (data) => {
     try {
@@ -24,33 +49,33 @@ function Signup() {
       setError("");
       data.role = data.role.toLowerCase();
 
-      if (data.role === "teacher") {
-        if (!data.classInfo) throw new Error("Class info is required for teachers");
+  if (data.role === "teacher") {
 
-        const entries = data.classInfo.split(",").map((s) => s.trim());
-        const teacherClasses = [];
+  if (!data.classInfo) throw new Error("Class info is required for teachers");
 
-        for (let entry of entries) {
-          const match = entry.match(/^([A-Z])(\d{1,2})([a-zA-Z]+)$/);
-          if (!match) throw new Error(`Invalid format: "${entry}". Use format like A5Physics`);
+  const teacherClasses = JSON.parse(data.classInfo);
 
-          const [, batch, classStr, subject] = match;
-          teacherClasses.push({
-            class: Number(classStr),
-            batch,
-            subject: subject.trim(),
-          });
-        }
-        data.teacherClasses = teacherClasses;
+  if (!Array.isArray(teacherClasses) || teacherClasses.length === 0) {
+    throw new Error("Please add at least one class");
+  }
+
+  data.teacherClasses = teacherClasses;
+}
+
+    if (data.role === "student") {
+
+      if (!studentClass || !studentBatch)
+        throw new Error("Class and batch are required");
+
+      data.class = Number(studentClass);
+      data.batch = studentBatch.toUpperCase().trim();
+      data.school = school;
+
+      if (data.class >= 11) {
+        data.stream = studentStream || null;
+        data.optionalSubject = studentOptionalSubject || null;
       }
-
-      if (data.role === "student") {
-        if (!data.studentclass || !data.studentbatch) throw new Error("Class and batch is required for students");
-
-        data.class = data.studentclass;
-        data.batch = data.studentbatch;
-
-      }
+    }
 
       const session = await Axios({
         ...SummaryAPi.register,
@@ -69,30 +94,62 @@ function Signup() {
     }
   };
 
-  const handleSchoolSignup = async (data) => {
-    try {
-      setLoading(true);
-      setError("");
 
-      if (/\s/.test(data.schoolId)) {
-        throw new Error("School ID must not contain spaces");
-      }
+const findSchool = async () => {
+  try {
+    setLoading(true);
 
-      const session = await Axios({
-        ...SummaryAPi.registerSchool,
-        data
-      });
+    const res = await Axios({
+      ...SummaryAPi.getSchoolDetailsByUniqueId,
+      data: { schoolId: school }
+    });
 
-      if (session.data.success) {
-        toast.success("School registration request sent successfully");
+    console.log(res);
 
-      }
-    } catch (err) {
-      setError(err.message || "Something went wrong");
-    } finally {
-      setLoading(false);
+    if (res.data?.success) {
+      toast.success("School verified");
+
+      setSchoolData(res.data.data.school);
+      setCoreSubjects(res.data.data.coreSubject || []);
+      setOptionalSubjects(res.data.data.school?.OptionalSubjects || []);
     }
-  };
+  } catch (error) {
+    toast.error("School not found");
+    setSchoolData(null);
+    setCoreSubjects([]);
+    setOptionalSubjects([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+  const handleAdd = () => {
+      if (!current.class || !current.batch || !current.subject) {
+    toast.error("Please fill all fields before adding");
+    return;
+  }
+
+    // 🚫 DUPLICATE PREVENTION
+  const exists = entries.some(
+    e =>
+      String(e.class) === String(current.class) &&
+      String(e.batch) === String(current.batch) &&
+      String(e.subject).toLowerCase() === String(current.subject).toLowerCase()
+  );
+
+  if (exists) {
+    toast.error("This entry already exists");
+    return;
+  }
+
+
+  setEntries((prev) => [...prev, current]);
+
+  // clear inputs
+  setCurrent({ class: "", batch: "", subject: "" });
+};
 
   return (
     <div className="w-full min-h-screen flex flex-col items-center justify-center">
@@ -140,36 +197,300 @@ function Signup() {
             <Input label="Email:" placeholder="Enter your email" type="email" {...register("email", { required: true })} />
             <Input label="Username:" placeholder="Enter your username" type="text" {...register("username", { required: true })} />
             <Input label="Full Name:" placeholder="Enter your full name" type="text" {...register("fullname", { required: true })} />
+           {(role === "student" || role === "teacher") && (
+            <div className="flex flex-wrap gap-3 items-end">
+              <div className="flex-1 min-w-[220px]">
+                <Input
+                  label="School:"
+                  placeholder="Enter your school name"
+                  type="text"
+                  {...register("school", { required: true })}
+                  onChange={(e)=>setSchool(e.target.value)}
+                  value={school}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={findSchool}
+                className="px-4 py-2 h-[42px] rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition min-w-[120px]"
+              >
+                Verify
+              </button>
+            </div>
+          )}
+
 
             {role === "teacher" && (
-              <Input label="Classes you are teaching" placeholder="e.g., A5Physics, B10Math" type="text" {...register("classInfo", { required: true })} />
+              // <Input label="Classes you are teaching" placeholder="e.g., A5Physics, B10Math" type="text" {...register("classInfo", { required: true })} />
+
+              <>
+
+              <input type="hidden" {...register("classInfo", { required: true })} />
+
+              <div className="flex flex-wrap gap-2 mb-4">
+  {entries.map((item, index) => (
+    <div
+      key={index}
+      className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-lg"
+    >
+      <span className="text-sm">
+        {item.class} • {item.batch} • {item.subject}
+      </span>
+
+      <button
+        type="button"
+        onClick={() =>
+          setEntries(entries.filter((_, i) => i !== index))
+        }
+        className="text-red-500 font-bold"
+      >
+        ×
+      </button>
+    </div>
+  ))}
+</div>
+<div className="flex flex-wrap gap-3 items-end">
+
+  {/* CLASS */}
+<div className="min-w-[140px]">
+  <label className="text-sm font-medium">Class</label>
+
+  <select
+    className="border rounded-lg px-3 py-2 w-full mt-1"
+    value={current.class}
+    onChange={(e) => {
+      const selected = e.target.value;
+
+      setCurrent({
+        ...current,
+        class: selected,
+        batch: "",
+        subject: ""
+      });
+
+      if (schoolData) {
+        const classInfo = schoolData.classes.find(
+          c => String(c.class) === String(selected)
+        );
+        setAvailableBatches(classInfo ? classInfo.batches : []);
+      }
+
+      setSubjectSearch("");
+      setAvailableSubjects([]);
+    }}
+  >
+    <option value="">Select</option>
+
+    {schoolData?.classes?.map(c => (
+      <option key={c.class} value={c.class}>
+        {c.class}
+      </option>
+    ))}
+  </select>
+</div>
+
+
+  {/* BATCH */}
+<div className="min-w-[140px]">
+  <label className="text-sm font-medium">Batch</label>
+
+  <select
+    className="border rounded-lg px-3 py-2 w-full mt-1"
+    value={current.batch}
+onChange={(e) => {
+  const batch = e.target.value;
+  const selectedClass = current.class;   // <-- freeze it
+
+  setCurrent(prev => ({
+    ...prev,
+    batch,
+    subject: ""
+  }));
+
+  // ⭐ get core subs for THIS class
+  const core = coreSubjects.find(
+    s => String(s.class) === String(selectedClass)
+  );
+
+  let subs = core ? core.subjects : [];
+
+  // ⭐ add optional only for senior classes
+  if (Number(selectedClass) >= 11 && core?.stream) {
+
+    const opt = optionalSubjects.find(
+      s => s.stream === core.stream
+    );
+
+    if (opt) subs = [...subs, ...opt.subjects];
+  }
+
+  setAvailableSubjects(subs);
+  setSubjectSearch("");
+}}
+
+    disabled={!availableBatches.length}
+  >
+    <option value="">Select</option>
+
+    {availableBatches.map(b => (
+      <option key={b}>{b}</option>
+    ))}
+  </select>
+</div>
+
+  {/* SUBJECT */}
+  <div className="min-w-[180px]">
+    <label className="text-sm font-medium">Subject</label>
+
+    <input
+      placeholder="Search subject..."
+      className="border rounded-lg px-3 py-1 mt-1 w-full"
+      value={subjectSearch}
+      onChange={e => setSubjectSearch(e.target.value)}
+      disabled={!availableSubjects.length}
+    />
+
+    <select
+      className="border rounded-lg px-3 py-2 w-full mt-1"
+      value={current.subject}
+      onChange={(e) =>
+        setCurrent({ ...current, subject: e.target.value })
+      }
+      disabled={!availableSubjects.length}
+    >
+      <option value="">Select</option>
+
+      {availableSubjects
+        .filter(s =>
+          s.toLowerCase().includes(subjectSearch.toLowerCase())
+        )
+        .map(s => (
+          <option key={s}>{s}</option>
+        ))}
+    </select>
+  </div>
+
+  {/* ADD button */}
+  <button
+    type="button"
+    className="h-10 px-4 bg-black text-white rounded-lg"
+    onClick={handleAdd}
+  >
+    Add
+  </button>
+</div>
+
+
+</>
             )}
 
 
-            {role === "student" && (<>
-              <Input label="Class" placeholder="Enter your class" type="text" {...register("studentclass", {
-                required: true, pattern: {
-                  value: /^\d+$/,
-                  message: "Class must contain only numbers (e.g., 10, 12)"
-                }
-              })} />
-                <p style={{ color: 'red' }}>
-                     {errors?.studentclass?.message}
-               </p>
-              <Input label="Batch" placeholder="Enter your batch (if not applicable then write A)" type="text" {...register("studentbatch", {
-                required: true, pattern: {
-                  value: /^[A-Z]+$/,
-                  message: "Batch must contain only capital letters (e.g., A, BATCHX)"
-                }
-              })} />
-                  <p style={{ color: 'red' }}>
-                       {errors?.studentbatch?.message} 
-                 </p>
-            </>
-            )}
-            {(role === "student" || role === "teacher") && (
-              <Input label="School:" placeholder="Enter your school name" type="text" {...register("school", { required: true })} />
-            )}
+{role === "student" && (
+  <div className="space-y-4">
+
+    {/* CLASS */}
+    <div>
+      <label className="text-sm font-medium">Class</label>
+      <select
+        className="border rounded-lg px-3 py-2 w-full mt-1"
+        value={studentClass}
+        onChange={e => {
+          const value = e.target.value;
+          setStudentClass(value);
+          setStudentBatch("");
+          setStudentStream("");
+          setStudentOptionalSubject("");
+
+          // set batches
+          const c = schoolData?.classes?.find(
+            x => String(x.class) === String(value)
+          );
+          setAvailableBatches(c ? c.batches : []);
+        }}
+        disabled={!schoolData}
+      >
+        <option value="">Select Class</option>
+
+        {schoolData?.classes?.map(c => (
+          <option key={c.class} value={c.class}>
+            {c.class}
+          </option>
+        ))}
+
+      </select>
+    </div>
+
+    {/* BATCH */}
+    <div>
+      <label className="text-sm font-medium">Batch</label>
+      <select
+        className="border rounded-lg px-3 py-2 w-full mt-1"
+        value={studentBatch}
+        onChange={e => setStudentBatch(e.target.value.toUpperCase())}
+        disabled={!availableBatches.length}
+      >
+        <option value="">Select Batch</option>
+
+        {availableBatches.map(b => (
+          <option key={b} value={b}>{b}</option>
+        ))}
+      </select>
+    </div>
+
+
+    {/* STREAM — ONLY IF CLASS >= 11 */}
+    {Number(studentClass) >= 11 && (
+      <div>
+        <label className="text-sm font-medium">Stream</label>
+        <select
+          className="border rounded-lg px-3 py-2 w-full mt-1"
+          value={studentStream}
+          onChange={e => {
+            setStudentStream(e.target.value);
+            setStudentOptionalSubject("");
+          }}
+        >
+          <option value="">Select Stream</option>
+
+          {[...new Set(coreSubjects
+            .filter(s => Number(s.class) === Number(studentClass))
+            .map(s => s.stream)
+          )].map(stream => (
+            <option key={stream} value={stream}>{stream}</option>
+          ))}
+
+        </select>
+      </div>
+    )}
+
+
+    {/* OPTIONAL SUBJECT — ONLY IF STREAM SELECTED */}
+    {Number(studentClass) >= 11 && studentStream && (
+      <div>
+        <label className="text-sm font-medium">Optional Subject</label>
+
+        <select
+          className="border rounded-lg px-3 py-2 w-full mt-1"
+          value={studentOptionalSubject}
+          onChange={e => setStudentOptionalSubject(e.target.value)}
+        >
+          <option value="">Select Optional Subject</option>
+
+          {(optionalSubjects.find(
+            s => s.stream === studentStream
+          )?.subjects || []).map(sub => (
+            <option key={sub}>{sub}</option>
+          ))}
+
+        </select>
+      </div>
+    )}
+
+  </div>
+)}
+
+          
 
             {/* 👁️ PASSWORD FIELD WITH TOGGLE */}
             <div className="relative">
@@ -210,60 +531,9 @@ function Signup() {
         </form>
       )}
 
-      {/* SCHOOL REGISTER FORM (UPDATED WITH PASSWORD + TOGGLE) */}
-      {registerType === "school" && (
-        <form
-          onSubmit={handleSubmit(handleSchoolSignup)}
-          className="mt-8 px-4 w-full max-w-xl bg-blue-100 rounded-md p-6"
-        >
-          <div className="space-y-5">
-            <Input label="School Name:" placeholder="Enter school name" type="text" {...register("schoolName", { required: true })} />
-            <Input label="Email:" placeholder="Enter your email" type="email" {...register("email", { required: true })} />
-            <Input label="Address:" placeholder="Enter address" type="text" {...register("address", { required: true })} />
-            <Input label="Pincode:" placeholder="Enter pincode" type="text" {...register("pincode", { required: true })} />
-            <Input label="Location:" placeholder="City / State" type="text" {...register("location", { required: true })} />
-            <Input label="Contact Number:" placeholder="Enter contact number" type="tel" {...register("contact", { required: true })} />
-            <Input label="Country:" placeholder="Enter country" type="text" {...register("country", { required: true })} />
-            <Input label="Custom School ID:" placeholder="Unique ID (no spaces)" type="text" {...register("schoolId", { required: true })} />
+      {/* SCHOOL REGISTER FORM */}
+      {registerType === "school" && <SchoolSignup />}
 
-            {/* 👁️ PASSWORD FIELD WITH TOGGLE */}
-            <div className="relative">
-              <Input
-                label="Password:"
-                placeholder="Enter school password"
-                type={showPassword ? "text" : "password"}
-                {...register("password", { required: true, minLength: 6 })}
-              />
-              <span
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-9 cursor-pointer text-gray-600"
-              >
-                {showPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
-              </span>
-            </div>
-
-            <Button type="submit" className="w-full px-4 py-2 rounded-lg bg-blue-600 text-white mt-4" disabled={loading}>
-              {loading ? (
-                <div className="scale-50 h-7 flex justify-center items-center">
-                  <Atom color={["#fff"]} />
-                </div>
-              ) : (
-                "Register School"
-              )}
-            </Button>
-          </div>
-
-          <div className="mt-2">
-            Already have a account?{" "}
-            <Link
-              to={"/login"}
-              className="text-blue-600 hover:underline"
-            >
-              Login
-            </Link>
-          </div>
-        </form>
-      )}
     </div>
   );
 }

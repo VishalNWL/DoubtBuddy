@@ -63,7 +63,7 @@ const SummaryAPi = {
    },
    
     getSubject: {
-        url: '/api/v1/classinfo/getsubject',
+        url: '/api/v1/classinfo/get-subjects',
         method: 'post'
     },
     totalStudentDoubt: {
@@ -109,6 +109,10 @@ const SummaryAPi = {
     },
     registerSubject: {
         url: "/api/v1/classinfo/add-class",
+        method: "post"
+    },
+    UpdateSubject: {
+        url: "/api/v1/classinfo/update-class",
         method: "post"
     },
     updateUser:{
@@ -169,6 +173,10 @@ TeachersBySchoolClass:{
 getUserProfileForSchool:{
     url:'/api/v1/school/profile',
     method:'get'
+},
+getSchoolDetailsByUniqueId:{
+    url:'/api/v1/school/schoolInfo',
+    method:'post'
 }
 
 

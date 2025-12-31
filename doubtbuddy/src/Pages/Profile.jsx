@@ -8,329 +8,353 @@ import { useDispatch, useSelector } from 'react-redux'
 import { MdModeEdit } from "react-icons/md";
 import { IoClose } from "react-icons/io5";
 import UploadImage from '../Utils/UploadImage';
-import { login, logout } from "../store/authSlice"
+import { login } from "../store/authSlice"
 import { ClipLoader } from 'react-spinners';
 import toast from 'react-hot-toast';
+import { IoEye, IoEyeOff } from "react-icons/io5";
 
 function Profile() {
+
   const user = useSelector(state => state.auth).userData;
   const role = user.role;
-  const [error, setError] = useState("");
-  const { handleSubmit, register , formState:{errors}} = useForm();
-  const [openEditAvatar, setOpenEditAvatar] = useState(false);
-  const [avatarPreview, setAvatarPreview] = useState(user.avatar)
-  const [teacherClasses, setTeacherClasses] = useState("");
   const dispatch = useDispatch();
-  const [loading, setloading] = useState(false);
+
+  const { handleSubmit, register } = useForm();
+
+  const [avatarPreview, setAvatarPreview] = useState(user.avatar);
+  const [openEditAvatar, setOpenEditAvatar] = useState(false);
   const [avatarUploadingLoader, setavatarUploadingLoader] = useState(false);
+
+  const [loading, setloading] = useState(false);
+
+  // ------------ SCHOOL DATA -------------
+  const [schoolData, setSchoolData] = useState(null);
+  const [coreSubjects, setCoreSubjects] = useState([]);
+  const [optionalSubjects, setOptionalSubjects] = useState([]);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // ------------ TEACHER STATE -------------
+  const [entries, setEntries] = useState(user.teacherClasses || []);
+  const [current, setCurrent] = useState({ class: "", batch: "", subject: "" });
+
+  // ------------ STUDENT STATE -------------
+  const [studentClass] = useState(user.class || "");
+  const [studentBatch] = useState(user.batch || "");
+  const [studentStream] = useState(user.stream || "");
+  const [studentOptionalSubject] = useState(user.optionalSubject || "");
+
+  useEffect(() => {
+    const fetchSchool = async () => {
+      try {
+        const res = await Axios({
+          ...SummaryAPi.getSchoolDetailsByUniqueId,
+          data: { schoolId: user.school }
+        });
+
+        if (res.data.success) {
+          setSchoolData(res.data.data.school);
+          setCoreSubjects(res.data.data.coreSubject || []);
+          setOptionalSubjects(res.data.data.school?.OptionalSubjects || []);
+        }
+      } catch { }
+    };
+
+    fetchSchool();
+  }, []);
 
   const fetchUserDetails = async () => {
     try {
       const USER = await Axios({ ...SummaryAPi.userDetails });
-      if (USER.data.success) {
-        dispatch(login(USER.data.data));
-      }
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
-  useEffect(()=>{
-      if(user.role==='teacher'){
-         setTeacherClasses(user.teacherClasses.map((val)=>{
-            return ""+val.batch+val.class+val.subject;
-         }))
-      }
-  },[])
+      if (USER.data.success) dispatch(login(USER.data.data));
+    } catch { }
+  };
 
   const handleUploadAvatar = async (e) => {
     const file = e.target.files[0];
     setavatarUploadingLoader(true);
+
     try {
-      if (file) {
-        // Check MIME type
-        if (!file.type.startsWith("image/")) {
-          alert("Only image files are allowed!");
-          return;
-        }
+      const avatar = await UploadImage(file);
 
-        // Optional: size limit (e.g., 2MB)
-        if (file.size > 2 * 1024 * 1024) {
-          alert("File size must be under 2MB");
-          return;
-        }
-        const avatar = await UploadImage(file);
-        console.log(avatar)
-        if (!avatar) {
-          alert("There is some error while uploading avatar");
-          return;
-        }
+      const response = await Axios({
+        ...SummaryAPi.uploadAvatar,
+        data: { avatar }
+      });
 
-
-        const response = await Axios({
-          ...SummaryAPi.uploadAvatar,
-          data: { avatar }
-        })
-
-        if (response.data.success) {
-          toast.success("Avatar uploaded successfully")
-          setAvatarPreview(response.data.data.avatar)
-          fetchUserDetails();
-        }
-
+      if (response.data.success) {
+        toast.success("Avatar uploaded successfully");
+        setAvatarPreview(response.data.data.avatar);
+        fetchUserDetails();
       }
-
-    } catch (error) {
-      toast.error(error.message)
-    }
-    finally {
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
       setavatarUploadingLoader(false);
     }
-  }
+  };
 
   const updateProfile = async (data) => {
-    setError("");
     try {
       setloading(true);
 
-      if (data.role === "teacher") {
-        if (!data.classInfo) throw new Error("Class info is required for teachers");
-
-
-        const entries = data.classInfo.split(",").map((s) => s.trim());
-        const teacherClasses = [];
-
-        for (let entry of entries) {
-          // Match: A5Physics, B10Math, etc.
-          const match = entry.match(/^([A-Z])(\d{1,2})([a-zA-Z]+)$/);
-          if (!match) {
-            throw new Error(
-              `Invalid format: "${entry}". Use format like A5Physics (batch, class, subject)`
-            );
-          }
-
-          const [, batch, classStr, subject] = match;
-          teacherClasses.push({
-            class: Number(classStr),
-            batch,
-            subject: subject.trim(),
-          });
+      if (data.password || data.confirmPassword) {
+        if (data.password !== data.confirmPassword) {
+          toast.error("Passwords do not match");
+          return;
         }
-        console.log(teacherClasses);
-        data.teacherClasses = teacherClasses
       }
 
+      if (role === "teacher") data.teacherClasses = entries;
 
-     if (data.role === "student") {
-        if (!data.studentclass || !data.studentbatch) throw new Error("Class and batch is required for students");
-
-        data.class = data.studentclass;
-        data.batch = data.studentbatch;
-
+      if (role === "student") {
+        data.class = studentClass;
+        data.batch = studentBatch;
+        data.stream = studentStream || null;
+        data.optionalSubject = studentOptionalSubject || null;
       }
 
       const session = await Axios({
         ...SummaryAPi.updateUser,
-        data: data
-      })
+        data
+      });
 
       if (session.data.success) {
         toast.success(session.data.message);
         fetchUserDetails();
       }
 
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "Something went wrong");
-    }
-    finally {
+    } finally {
       setloading(false);
     }
   };
 
-
-
   return (
     <section>
+
+      {/* Avatar */}
       <div className="flex items-center justify-center mt-2">
         <div className="relative group w-24 h-24 cursor-pointer">
-          {avatarPreview ? (
-            <img
-              src={avatarPreview}
-              className="w-24 h-24 rounded-full object-cover"
-            />
-          ) : (
-            <FaUserCircle size={96} style={{ color: "#bcbcbc" }} />
-          )}
+          {avatarPreview
+            ? <img src={avatarPreview} className="w-24 h-24 rounded-full object-cover" />
+            : <FaUserCircle size={96} style={{ color: "#bcbcbc" }} />
+          }
 
-          {/* Overlay appears only when hovering avatar */}
-          <div onClick={() => setOpenEditAvatar(true)} className="absolute inset-0 rounded-full bg-black bg-opacity-70 text-white 
-                          flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+          <div
+            onClick={() => setOpenEditAvatar(true)}
+            className="absolute inset-0 rounded-full bg-black bg-opacity-70 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+          >
             <MdModeEdit size={20} />
           </div>
         </div>
       </div>
 
+      {/* FORM */}
       <div className='mt-0 px-2'>
         <div className="w-full flex flex-col items-center justify-center">
-          <form
-            onSubmit={handleSubmit(updateProfile)}
-            className="mt-8 px-4 w-full max-w-xl bg-blue-100 rounded-md p-6"
-          >
+
+          <form onSubmit={handleSubmit(updateProfile)} className="mt-8 px-4 w-full max-w-xl bg-blue-100 rounded-md p-6">
+
             <div className="space-y-5">
-              <Input
-                label="Role:"
-                defaultValue={user.role}
-                disabled
-              />
 
-              <Input
-                label="Email:"
-                placeholder="Enter your email"
-                type="email"
-                defaultValue={user.email}
-                {...register("email", {
-                  required: true,
-                  validate: {
-                    matchPattern: (value) =>
-                      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value) ||
-                      "Email address must be valid",
-                  },
-                })}
-              />
+              <Input label="Role:" defaultValue={user.role} disabled />
+              <Input label="Email:" defaultValue={user.email} type="email" {...register("email")} />
+              <Input label="Username:" defaultValue={user.username} disabled />
+              <Input label="Full Name:" defaultValue={user.fullname} disabled {...register("fullname")} />
 
-              <Input
-                label="Username:"
-                placeholder="Enter your username"
-                type="text"
-                defaultValue={user.username}
-                {...register("username", { required: true })}
-              />
-
-              <Input
-                label="Full Name:"
-                placeholder="Enter your full name"
-                defaultValue={user.fullname}
-                type="text"
-                {...register("fullname", { required: true })}
-              />
-
-              {user.role === "teacher" && (
-                <Input
-                  label="Classes you are teaching"
-                  placeholder="e.g., A5Physics, B10Math, C8English"
-                  defaultValue={`${teacherClasses}`}
-                  type="text"
-                  {...register("classInfo", {
-                    required: "Please enter class info for teacher (e.g., A5Physics)",
-                    pattern: {
-                      value: /^([A-Z]\d{1,2}[a-zA-Z]+)(,\s*[A-Z]\d{1,2}[a-zA-Z]+)*$/,
-                      message: "Format should be A5Physics, B10Math (no spaces inside entry)",
-                    },
-                  })}
-                />
-
-              )}
-      {role === "student" && (<>
-              <Input label="Class" placeholder="Enter your class" defaultValue={user.class} type="text" {...register("studentclass", {
-                required: true, pattern: {
-                  value: /^\d+$/,
-                  message: "Class must contain only numbers (e.g., 10, 12)"
-                }
-              })} />
-                <p style={{ color: 'red' }}>
-                     {errors?.studentclass?.message}
-               </p>
-              <Input label="Batch" placeholder="Enter your batch (if not applicable then write A)" defaultValue={user.batch} type="text" {...register("studentbatch", {
-                required: true, pattern: {
-                  value: /^[A-Z]+$/,
-                  message: "Batch must contain only capital letters (e.g., A, BATCHX)"
-                }
-              })} />
-                  <p style={{ color: 'red' }}>
-                       {errors?.studentbatch?.message} 
-                 </p>
-            </>
-            )}
-
-              {(user.role === "student" || role === "teacher") && (
+              {/* -------- TEACHER -------- */}
+              {role === "teacher" && (
                 <>
-                  <Input
-                    label="School:"
-                    placeholder="Enter Your School Name"
-                    defaultValue={user.school}
-                    type="text"
-                    {...register("school", {
-                      required: "Please enter your school name",
-                    })}
-                  />
+                  <div className="flex flex-wrap gap-2">
+                    {entries.map((e, i) => (
+                      <div key={i} className="px-3 py-1 bg-gray-200 rounded flex items-center gap-2">
+                        {e.class} • {e.batch} • {e.subject}
+                        <button type="button" onClick={() => setEntries(entries.filter((_, idx) => idx !== i))}>×</button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex gap-3 flex-wrap">
+                    <select
+                      value={current.class}
+                      onChange={e => {
+                        const c = e.target.value;
+                        setCurrent({ class: c, batch: "", subject: "" });
+
+                        const info = schoolData?.classes?.find(x => String(x.class) === c);
+                        setAvailableBatches(info?.batches || []);
+                      }}
+                      className="border rounded px-3 py-1"
+                    >
+                      <option value="">Class</option>
+                      {schoolData?.classes?.map(c => (
+                        <option key={c.class}>{c.class}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={current.batch}
+                      onChange={e => setCurrent(prev => ({ ...prev, batch: e.target.value }))}
+                      className="border rounded px-3 py-1"
+                    >
+                      <option value="">Batch</option>
+                      {availableBatches.map(b => (
+                        <option key={b}>{b}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={current.subject}
+                      onChange={e => setCurrent(prev => ({ ...prev, subject: e.target.value }))}
+                      className="border rounded px-3 py-1"
+                    >
+                      <option value="">Subject</option>
+                      {availableSubjects.map(s => (
+                        <option key={s}>{s}</option>
+                      ))}
+                    </select>
+
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        if (!current.class || !current.batch || !current.subject)
+                          return toast.error("Fill all fields");
+
+                        setEntries(prev => [...prev, current]);
+                        setCurrent({ class: "", batch: "", subject: "" });
+                      }}>
+                      Add
+                    </Button>
+                  </div>
                 </>
               )}
 
-              <Button type="submit" className={`w-full px-4 py-2 rounded-lg bg-blue-600 text-white mt-4 ${loading
-                ? "bg-slate-500 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 cursor-pointer"}`} disabled={loading}>
-                {loading ?
-                  <div className='flex items-center justify-center'>
-                    <ClipLoader
-                      color='white'
-                      size={24}
-                    />
+              {/* -------- STUDENT (READ ONLY) -------- */}
+              {role === "student" && (
+                <div className="space-y-3">
 
-                  </div> :
-                  "Update"}
+                  <select
+                    value={studentClass}
+                    disabled
+                    className="border rounded px-3 py-1 w-full cursor-not-allowed"
+                  >
+                    <option>{studentClass}</option>
+                  </select>
+
+                  <select
+                    value={studentBatch}
+                    disabled
+                    className="border rounded px-3 py-1 w-full cursor-not-allowed"
+                  >
+                    <option>{studentBatch}</option>
+                  </select>
+
+                  {Number(studentClass) >= 11 && (
+                    <>
+                      <select
+                        value={studentStream}
+                        disabled
+                        className="border rounded px-3 py-1 w-full cursor-not-allowed"
+                      >
+                        <option>{studentStream}</option>
+                      </select>
+
+                      <select
+                        value={studentOptionalSubject}
+                        disabled
+                        className="border rounded px-3 py-1 w-full cursor-not-allowed"
+                      >
+                        <option>{studentOptionalSubject}</option>
+                      </select>
+                    </>
+                  )}
+
+                </div>
+              )}
+
+              <Input label="School" defaultValue={user.school} disabled />
+              {/* -------- PASSWORD UPDATE (OPTIONAL) -------- */}
+              {/* -------- PASSWORD UPDATE -------- */}
+              <div className="relative">
+                <label className="text-sm font-medium">New Password</label>
+
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Leave empty if no change"
+                  className="border rounded px-3 py-2 w-full mt-1"
+                  {...register("password")}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(prev => !prev)}
+                  className="absolute right-3 top-10 text-gray-600"
+                >
+                  {showPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
+                </button>
+              </div>
+
+
+              <div className="relative">
+                <label className="text-sm font-medium">Confirm Password</label>
+
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Re-enter password"
+                  className="border rounded px-3 py-2 w-full mt-1"
+                  {...register("confirmPassword")}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(prev => !prev)}
+                  className="absolute right-3 top-10 text-gray-600"
+                >
+                  {showConfirmPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
+                </button>
+              </div>
+
+
+              <Button type="submit" className="w-full bg-blue-600 text-white mt-4" disabled={loading}>
+                {loading ? <ClipLoader color="white" size={20} /> : "Update"}
               </Button>
+
             </div>
+
           </form>
         </div>
       </div>
 
-      {
-        openEditAvatar &&
-        <div className='absolute z-50 bg-black bg-opacity-80 top-0 left-0 right-0 bottom-0 flex justify-center items-center'>
-          <div className='min-w-60 bg-white min-h-5 rounded p-1'>
-            <div className='w-fit ml-auto text-[#1a1a1a] cursor-pointer hover:text-red-500' onClick={() => setOpenEditAvatar(false)}>
+      {/* -------- Avatar Modal -------- */}
+      {openEditAvatar &&
+        <div className='absolute z-50 bg-black bg-opacity-80 inset-0 flex justify-center items-center'>
+          <div className='min-w-60 bg-white rounded p-2'>
+            <div className='ml-auto w-fit cursor-pointer hover:text-red-500' onClick={() => setOpenEditAvatar(false)}>
               <IoClose size={20} />
             </div>
-            <div>
-              <div className="flex items-center justify-center mt-1">
-                <div className="relative w-24 h-24">
-                  {
-                    avatarUploadingLoader ? (
-                      <div className="flex items-center justify-center h-full rounded-full bg-gray-200">
-                        <ClipLoader color="blue" size={20} />
-                      </div>
-                    ) : avatarPreview ? (
-                      <img
-                        src={avatarPreview}
-                        className="w-24 h-24 rounded-full object-cover"
-                        alt="avatar"
-                      />
-                    ) : (
-                      <FaUserCircle size={96} style={{ color: "gray" }} />
-                    )
-                  }
-                </div>
-              </div>
+
+            <div className="flex justify-center mt-2">
+              {avatarUploadingLoader
+                ? <ClipLoader color="blue" />
+                : avatarPreview
+                  ? <img className='w-24 h-24 rounded-full' src={avatarPreview} />
+                  : <FaUserCircle size={96} />
+              }
             </div>
 
-            <div className='w-full flex justify-center my-2'>
-              <label htmlFor='uploadimg' className={`px-2 py-1 mt-2 rounded text-white transition-colors
-    ${avatarUploadingLoader
-                  ? "bg-slate-500 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 cursor-pointer"}
-  `}>Upload</label>
-              <input type='file' accept="image/*"
-                disabled={avatarUploadingLoader}
-                onChange={handleUploadAvatar}
-                className='hidden' id='uploadimg'></input>
+            <div className='w-full flex justify-center mt-3'>
+              <label htmlFor='uploadimg' className='px-3 py-1 rounded bg-blue-600 text-white cursor-pointer'>
+                Upload
+              </label>
+              <input id='uploadimg' type='file' className='hidden' onChange={handleUploadAvatar} disabled={avatarUploadingLoader} />
             </div>
+
           </div>
         </div>
       }
 
     </section>
-  )
+  );
 }
 
-export default Profile
+export default Profile;

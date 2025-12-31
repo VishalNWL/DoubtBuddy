@@ -62,24 +62,29 @@ status: {
   },
 
   // Student-only
-  class: {
+    class: {
     type: Number,
     required: function () {
       return this.role === 'student';
     }
   },
+
   batch: {
     type: String,
     required: function () {
       return this.role === 'student';
     }
   },
-  // stream: {
-  //   type: String,
-  //   required: function () {
-  //     return this.role === 'student' && this.class>10;
-  //   },
-  // },
+
+  stream: {
+    type: String,
+    default: null
+  },
+
+  optionalSubject: {
+    type: String,
+    default: null
+  },
 
   AskedQuestions:{
       type:[{type: Schema.Types.ObjectId, ref: 'Doubt' }],

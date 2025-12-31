@@ -34,14 +34,20 @@ function CreateDoubt() {
   useEffect(()=>{
      (async ()=>{
         const Class = user.class
+         const stream = user.class>10 ? user.stream : null;
+
         const subinfo= await Axios({
           ...SummaryAPi.getSubject,
-          data: {Class}
+          data: {Class , school:user.school ,stream}
         })
         
         
         if(subinfo.status===200){
-          setSubjectOptions(subinfo.data.data);
+          const classes = subinfo.data.data.subjects;
+          if(user.class>10){
+             classes.push(user.optionalSubject);
+          }
+          setSubjectOptions(classes);
         }  
         
         

@@ -18,8 +18,8 @@ function SchoolDashBoard() {
   const school = useSelector((state) => state.auth.userData);
   const navigate = useNavigate();
 
-  const handleCardClick = (cls) => {
-    navigate(`/class-details/${cls}`);
+  const handleCardClick = (cls,index) => {
+    navigate(`/class-details/${cls.class}/${index}`);
   };
 
   if (!school?.classes?.length) {
@@ -38,8 +38,8 @@ function SchoolDashBoard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {school.classes.map((cls, index) => (
           <div
-            key={cls}
-            onClick={() => handleCardClick(cls)}
+            key={cls.class}
+            onClick={() => handleCardClick(cls,index)}
             className={`
               relative cursor-pointer rounded-lg p-8 text-center font-semibold text-xl 
               bg-gradient-to-br ${COLORS[index % COLORS.length]} 
@@ -52,7 +52,7 @@ function SchoolDashBoard() {
 
             {/* Card content */}
             <div className="relative z-10">
-              Class {cls}
+              Class {cls.class}
             </div>
           </div>
         ))}

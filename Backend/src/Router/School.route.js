@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getStudentsByClass, getTeachersByClass, getUserProfileForSchool } from "../Controllers/School.Controller.js";
+import { getStudentsByClass, getTeachersByClass, getUserProfileForSchool,getSchoolDetailByUniqueId } from "../Controllers/School.Controller.js";
 import { jwtverify } from "../Middlewares/auth.middleware.js";
 
 
@@ -18,6 +18,10 @@ router
  router
  .route('/profile/:userId')
  .get(jwtverify,getUserProfileForSchool)
+
+ router
+ .route('/schoolInfo')
+ .post(getSchoolDetailByUniqueId)
 
 
 

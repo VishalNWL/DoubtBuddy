@@ -9,20 +9,21 @@ const schoolSchema = new Schema(
       required: true,
       trim: true,
     },
-    email:{
-        type:String,
-        required:true
+    email: {
+      type: String,
+      required: true
     },
     address: {
       type: String,
       required: true,
       trim: true,
     },
-    pincode: {
-      type: String,
-      required: true,
-      match: /^[0-9]{6}$/, // adjust if not Indian pincode
-    },
+pincode: {
+  type: String,
+  required: true,
+  trim: true,
+  match: [/^[A-Za-z0-9\- ]{3,10}$/, "Invalid postal code"]
+},
     location: {
       type: String,
       required: true,
@@ -42,33 +43,41 @@ const schoolSchema = new Schema(
       unique: true,
       trim: true,
     },
-    classes:{
-        type:[Number],
-        required:true
-    },
-    password: {
+    classes: [
+      {
+        class: { type: Number, required: true },
+        batches: [String]
+      } 
+    ],
+    OptionalSubjects: [
+      {
+        stream: { type: String },
+        subjects: [String]
+      }
+    ],
+    password: { 
       type: String,
       required: true,
       minlength: 6,
     },
-  forget_password_otp:{
-     type:String,
-     default:null
-  },
-  forget_password_expiry:{
-      type:Date,
-      default:""
-  },
-  
-  
+    forget_password_otp: {
+      type: String,
+      default: null
+    },
+    forget_password_expiry: {
+      type: Date,
+      default: ""
+    },
+
+
     status: {
       type: String,
       enum: ["pending", "active", "rejected"],
       default: "pending",
     },
     refreshToken: {
-  type: String,
-},
+      type: String,
+    },
   },
   { timestamps: true }
 );

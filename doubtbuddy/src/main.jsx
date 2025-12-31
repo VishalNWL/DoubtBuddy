@@ -182,7 +182,7 @@ const router = createBrowserRouter([
             element:<ResetPassword/>
         },
         {
-            path:'/class-details/:Class',
+            path:'/class-details/:Class/:ClassIdx',
             element:<ClassDetails/>
         },
         {

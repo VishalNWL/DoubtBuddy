@@ -21,12 +21,16 @@ const RegisterUser = asyncHandler(async (req, res) => {
       school,
       class : classval,
       batch,
-      teacherClasses
+      teacherClasses,
+      stream,
+      optionalSubject
     } = req.body;
 
     if (!username || !fullname || !email || !role || !password) {
       return res.status(400).json(new Apiresponse(400, {}, "Required fields missing"));
     }
+    
+
     role = role.toLowerCase()
     let userData = {
       username,
@@ -46,25 +50,71 @@ const RegisterUser = asyncHandler(async (req, res) => {
     }
 
 
-    if (role === "student") {
-      if (!classval) {
-        return res.status(400).json(new Apiresponse(400, {}, "Class is required for students"));
-      }
-      userData.class = classval;
-      userData.batch = batch || 'A';
-      userData.school = school;
+if (role === "student") {
+
+  if (!classval) {
+    return res.status(400).json(
+      new Apiresponse(400, {}, "Class is required for students")
+    );
+  }
+
+  const classNum = Number(classval);
+
+  if (Number.isNaN(classNum)) {
+    return res.status(400).json(
+      new Apiresponse(400, {}, "Class must be a valid number")
+    );
+  }
+
+  userData.class = classNum;
+  userData.batch = (batch || 'A').toUpperCase().trim();
+  userData.school = school;
+
+  // Senior classes (11 & 12)
+  if (classNum >= 11) {
+    userData.stream = stream || null;
+    userData.optionalSubject = req.body.optionalSubject || null;
+  }
+}
+
+
+  if (role === "teacher") {
+
+  if (!teacherClasses || !Array.isArray(teacherClasses)) {
+    return res.status(400).json(
+      new Apiresponse(400, {}, "teacherClasses must be an array for teachers")
+    );
+  }
+
+  if (teacherClasses.length === 0) {
+    return res.status(400).json(
+      new Apiresponse(400, {}, "At least one class is required")
+    );
+  }
+
+  for (const t of teacherClasses) {
+
+    if (!t || typeof t.class === "undefined" || !t.batch || !t.subject) {
+      return res.status(400).json(
+        new Apiresponse(400, {}, "Each teacher class must include class, batch & subject")
+      );
     }
 
-    if (role === "teacher") {
-    
+    t.class = Number(t.class);
+    t.batch = String(t.batch).trim();
+    t.subject = String(t.subject).trim();
 
-      if (!teacherClasses || !Array.isArray(teacherClasses)) {
-        return res.status(400).json(new Apiresponse(400, {}, "teacherClasses must be an array for teachers"));
-      }
-      userData.teacherClasses = teacherClasses;
-      //  console.log(teacherClasses)
-      userData.school = school;
+    if (Number.isNaN(t.class)) {
+      return res.status(400).json(
+        new Apiresponse(400, {}, "Class must be a valid number")
+      );
     }
+  }
+
+  userData.teacherClasses = teacherClasses;
+  userData.school = school;
+}
+
     
     const user = await User.create(userData);
     
@@ -416,14 +466,18 @@ const allPendingStudents = await User.find({
 }
 const gettingPendingTeacher=async(req,res)=>{
    try {
-    const schoolId = req.user;
-    const  school = await School.findOne(schoolId);
+    let schoolId = req.school.schoolId;
+    
+     if(!schoolId){
+        return res.status(400).json(new Apiresponse(400,{},"Provide the schoolId"))
+     }
+    const  school = await School.findOne({schoolId});
 
     if(!school){
        return res.status(400).json(new Apiresponse(500,{},"You are not allowed to fetch data" ))
     }
      
-    const allPendingUser = await User.find({status:"pending" ,role:'teacher',school:school.schoolId});
+    const allPendingUser = await User.find({status:"pending" ,role:'teacher',school:schoolId});
     
     return res.status(200).json(new Apiresponse(200,allPendingUser,"All pending user fetched successfully"));
     
@@ -490,10 +544,13 @@ const registerSchool = async (req, res) => {
       country,
       schoolId,
       password,
-      email
+      email,
+      OptionalSubjects,
+      classes
     } = req.body;
 
-    // ✅ Required fields check
+
+    // ---------- REQUIRED VALIDATION ----------
     if (
       !schoolName ||
       !address ||
@@ -503,21 +560,22 @@ const registerSchool = async (req, res) => {
       !country ||
       !schoolId ||
       !password ||
-      !email
+      !email ||
+      !classes
     ) {
       return res
         .status(400)
         .json(new Apiresponse(400, {}, "Required fields missing"));
     }
 
-    // ✅ Validate schoolId format (no spaces)
+
     if (/\s/.test(schoolId)) {
       return res
         .status(400)
         .json(new Apiresponse(400, {}, "School ID cannot contain spaces"));
     }
 
-    // ✅ Check if schoolId already exists
+
     const existingSchool = await School.findOne({ schoolId });
     if (existingSchool) {
       return res
@@ -525,8 +583,61 @@ const registerSchool = async (req, res) => {
         .json(new Apiresponse(409, {}, "School ID already exists"));
     }
 
-    // ✅ Prepare data
-    let schoolData = {
+
+
+    // ---------- NORMALIZE CLASSES ----------
+    const normalizedClasses = (classes || []).map(obj => {
+
+      // CASE 1 — already correct format
+      if (typeof obj?.class !== "undefined") {
+        const classNum = Number(obj.class);
+
+        if (isNaN(classNum)) throw new Error("Invalid class value received");
+
+        return {
+          class: classNum,
+          batches: obj.batches || []
+        };
+      }
+
+      // CASE 2 — legacy format
+      const rawKey = Object.keys(obj)[0];
+      const classNum = parseInt(rawKey, 10);
+
+      if (isNaN(classNum)) throw new Error("Invalid class value received");
+
+      return {
+        class: classNum,
+        batches: obj[rawKey] || []
+      };
+    });
+
+
+
+    // ---------- NORMALIZE OPTIONAL SUBJECTS ----------
+    const normalizedOptionalSubjects = (OptionalSubjects || []).map(obj => {
+
+      // CASE 1 — already correct schema
+      if (obj?.stream) {
+        return {
+          stream: obj.stream,
+          subjects: obj.subjects || []
+        };
+      }
+
+      // CASE 2 — legacy: { Science:["Math","Bio"] }
+      const key = Object.keys(obj)[0];
+
+      return {
+        stream: key,
+        subjects: obj[key] || []
+      };
+    });
+
+
+
+    // ---------- FINAL SCHOOL DATA ----------
+    const schoolData = {
       schoolName,
       email,
       address,
@@ -535,28 +646,31 @@ const registerSchool = async (req, res) => {
       contactNo,
       country,
       schoolId,
-      password, // will be hashed automatically in pre-save hook
-      status: "pending", // default
+      password,
+      status: "pending",
+      classes: normalizedClasses,
+      OptionalSubjects: normalizedOptionalSubjects
     };
 
-    // ✅ Save to DB
+
+    // ---------- SAVE ----------
     const school = await School.create(schoolData);
 
-    return res
-      .status(201)
-      .json(
-        new Apiresponse(
-          201,
-          {
-            _id: school._id,
-            schoolName: school.schoolName,
-            schoolId: school.schoolId,
-            status: school.status,
-            createdAt: school.createdAt,
-          },
-          "School registration requested successfully"
-        )
-      );
+
+    return res.status(201).json(
+      new Apiresponse(
+        201,
+        {
+          _id: school._id,
+          schoolName: school.schoolName,
+          schoolId: school.schoolId,
+          status: school.status,
+          createdAt: school.createdAt
+        },
+        "School registration requested successfully"
+      )
+    );
+
   } catch (error) {
     console.error("School Register error:", error);
     throw new ApiError(
@@ -566,42 +680,111 @@ const registerSchool = async (req, res) => {
   }
 };
 
-const updateSchool = async(req,res)=>{
-    try {
-      const userId = req.school;
-     
-      if(!userId){
-        return res.status(400).json(new Apiresponse(400,{},"Unauthorized request"));
-      }
-      const {address , classes , contactNo , country, pincode,location,schoolName,email,password=""}=req.body;
-      if(!address || !classes || !contactNo || !country || !pincode || !location || !schoolName || !email){
-        return res.status(400).json(new Apiresponse(400,{},"All fields required"));
-      }
-      
-      const school = await School.findById(userId);
-      
-      if(!school){
-        return res.status(400).json(new Apiresponse(400,{},"School not found"));
-      }
 
-      school.address=address;
-      school.classes = classes;
-      school.contactNo = contactNo;
-      school.country=country;
-      school.pincode = pincode;
-      school.location=location;
-      school.schoolName = schoolName;
-      school.password = password||school.password;
-      school.email = email;
-      await school.save();
+const updateSchool = async (req, res) => {
+  try {
+    const userId = req.school;
 
-      return res.status(200).json(new Apiresponse(200,{school},"User updated successfully"));
-
-    } catch (error) {
-      console.log(error);
-       return res.status(500).json(new Apiresponse(500,{error},"Something went wrong"));
+    if (!userId) {
+      return res
+        .status(401)
+        .json(new Apiresponse(401, {}, "Unauthorized request"));
     }
-}
+
+    const {
+      address,
+      classes,
+      contactNo,
+      country,
+      pincode,
+      location,
+      schoolName,
+      email,
+      password,
+      OptionalSubjects
+    } = req.body;
+
+
+    // ---------- BASIC FIELD CHECK ----------
+    if (
+      !address ||
+      !Array.isArray(classes) ||
+      !contactNo ||
+      !country ||
+      !pincode ||
+      !location ||
+      !schoolName ||
+      !email
+    ) {
+      return res
+        .status(400)
+        .json(new Apiresponse(400, {}, "All fields required"));
+    }
+
+
+    // ---------- VALIDATE CLASSES ----------
+    for (const item of classes) {
+
+      if (
+        typeof item.class !== "number" ||
+        !Array.isArray(item.batches)
+      ) {
+        return res
+          .status(400)
+          .json(new Apiresponse(400, {}, "Invalid class structure"));
+      }
+    }
+
+
+    // ---------- VALIDATE OPTIONAL SUBJECTS ----------
+    if (OptionalSubjects && !Array.isArray(OptionalSubjects)) {
+      return res
+        .status(400)
+        .json(new Apiresponse(400, {}, "Invalid OptionalSubjects format"));
+    }
+
+
+    const school = await School.findById(userId);
+
+    if (!school) {
+      return res
+        .status(404)
+        .json(new Apiresponse(404, {}, "School not found"));
+    }
+
+
+    // ---------- UPDATE FIELDS ----------
+    school.address = address;
+    school.classes = classes; // <-- structured array
+    school.OptionalSubjects = OptionalSubjects || [];
+    school.contactNo = contactNo;
+    school.country = country;
+    school.pincode = pincode;
+    school.location = location;
+    school.schoolName = schoolName;
+    school.email = email;
+
+    // ---------- PASSWORD (ONLY IF PROVIDED) ----------
+    if (password && password.trim() !== "") {
+      school.password = password;
+    }
+
+    await school.save();
+
+
+    return res
+      .status(200)
+      .json(new Apiresponse(200, { school }, "School updated successfully"));
+
+
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(new Apiresponse(500, {}, "Something went wrong"));
+  }
+};
+
 
 const getCurrentSchool = asyncHandler(async (req, res) => {
   const school = req.school; // this comes from middleware after verifying token

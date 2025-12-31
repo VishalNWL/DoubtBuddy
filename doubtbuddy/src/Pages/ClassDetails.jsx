@@ -9,7 +9,7 @@ export default function ClassPage() {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const { Class } = useParams();
+  const { Class ,ClassIdx} = useParams();
   const navigate = useNavigate()
 
   // Fetch students

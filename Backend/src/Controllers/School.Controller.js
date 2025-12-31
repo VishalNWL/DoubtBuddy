@@ -1,3 +1,4 @@
+import { ClassInfo } from "../Models/ClassInfo.model.js";
 import School from "../Models/School.model.js";
 import { User } from "../Models/user.model.js";
 import { Apiresponse } from "../Utils/Apiresponse.js";
@@ -17,7 +18,7 @@ const getStudentsByClass = async (req,res)=>{
 
       const {Class} = req.body;
       
-      const students = await User.find({school:school.schoolId , class:Class ,role:'student'})
+      const students = await User.find({school:school.schoolId , class:Class ,role:'student' , status:'active'})
       .select("-password -role -teacherClasses -forget_password_expiry -forget_password_otp -answeredQuestions -updatedAt")
       .sort({batch:1 , fullname:1})
 
@@ -46,7 +47,8 @@ const getTeachersByClass = async (req,res)=>{
       const teachers = await User.find(
         {school:school.schoolId ,
            role:'teacher',
-           "teacherClasses.class":Class
+           "teacherClasses.class":Class,
+            status:'active'
            }
       ).select("-password -role -teacherClasses -forget_password_expiry -forget_password_otp -answeredQuestions -updatedAt")
       
@@ -104,8 +106,43 @@ const getUserProfileForSchool = async (req, res) => {
 };
 
 
+const getSchoolDetailByUniqueId = async(req,res)=>{
+  const {schoolId} = req.body;
+
+  if(!schoolId){
+      return res.status(400).json(new Apiresponse(400,{},"Provide school Id"));
+   }
+
+   try {
+
+     const school = await School.findOne({schoolId:schoolId}).select("classes OptionalSubjects");
+
+     if(!school){
+        return res.status(400).json(new Apiresponse(400,{},"No school found"));
+     }
+
+     const schoolTrimmed = schoolId.trim();
+
+     const coreSubject = await ClassInfo.find(
+    { school:schoolTrimmed },
+    { class:1, stream:1,subjects:1, _id:0 }
+  ).sort({ class:1 });
+
+
+
+     return res.status(200).json(new Apiresponse(200,{coreSubject,school},"School data fetched successfully"));
+    
+   } catch (error) {
+      console.log(error?.message);
+      console.log(error);
+      return res.status(400).json(new Apiresponse(500,{},"Something went wrong"));
+   }
+}
+
+
 export {
     getStudentsByClass,
     getTeachersByClass,
-    getUserProfileForSchool
+    getUserProfileForSchool,
+    getSchoolDetailByUniqueId
 }

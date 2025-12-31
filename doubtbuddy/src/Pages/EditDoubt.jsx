@@ -7,6 +7,7 @@ import { Button, Input, Select } from "../Components";
 import Axios from "../Utils/Axios";
 import SummaryApi from "../Common/SummaryApi";
 import UploadImage from "../Utils/UploadImage";
+import SummaryAPi from "../Common/SummaryApi";
 
 function EditDoubt() {
   const { doubtId } = useParams();
@@ -29,12 +30,22 @@ function EditDoubt() {
   useEffect(() => {
     (async () => {
       try {
-        const subRes = await Axios({
-          ...SummaryApi.getSubject,
-          data: { Class: user.class },
-        });
+         const Class = user.class
+         const stream = user.class>10 ? user.stream : null;
 
-        if (subRes.status === 200) setSubjectOptions(subRes.data.data);
+        const subinfo= await Axios({
+          ...SummaryAPi.getSubject,
+          data: {Class , school:user.school ,stream}
+        })
+        
+        
+        if(subinfo.status===200){
+          const classes = subinfo.data.data.subjects;
+          if(user.class>10){
+             classes.push(user.optionalSubject);
+          }
+          setSubjectOptions(classes);
+        }  
 
         const doubtRes = await Axios({
           ...SummaryApi.doubtbyId,
