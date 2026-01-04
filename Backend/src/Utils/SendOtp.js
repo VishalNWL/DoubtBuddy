@@ -5,9 +5,12 @@ export const sendOTP = async ({ name, email, otp }) => {
   if (!email) throw new Error("Email is required for sending OTP");
 
   console.log("📧 Sending OTP email to:", email);
-
+  
   const transporter = nodemailer.createTransport({
+    secure:true,
+    host:'smtp.gmail.com',
     service: "gmail",
+    port:465,
     auth: {
       user: process.env.GMAIL_USER, 
       pass: process.env.GMAIL_PASS,
