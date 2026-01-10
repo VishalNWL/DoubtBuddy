@@ -40,7 +40,7 @@ function CreateDoubt() {
           ...SummaryAPi.getSubject,
           data: {Class , school:user.school ,stream}
         })
-        
+         
         
         if(subinfo.status===200){
           const classes = subinfo.data.data.subjects;
@@ -55,7 +55,7 @@ function CreateDoubt() {
       ...SummaryAPi.totalStudentDoubt,
       data:{studentId:user._id}
     })
-
+ 
 
 
     if(totaldoubtsbystudent.data.success){

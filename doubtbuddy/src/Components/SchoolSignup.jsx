@@ -55,7 +55,11 @@ if (!schoolClassData || !Array.isArray(schoolClassData.classes) || schoolClassDa
       }
 
     } catch (err) {
-      setError(err.message || "Something went wrong");
+      console.log(err)
+      if(err?.response?.data?.message){
+         alert(err?.response?.data?.message);
+      }
+      setError(err?.response?.data?.message||err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
