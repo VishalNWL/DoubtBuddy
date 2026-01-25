@@ -29,20 +29,29 @@ function CreateDoubt() {
   const [fileDeletingLoader,setFileDeletingLoader]=useState(false);
 
   const user = useSelector((state)=>state.auth).userData;
+  const StudentSubject = useSelector((state)=>state.academics).studentSubject;
+
   // console.log(user)
  
   useEffect(()=>{
      (async ()=>{
-        const Class = user.class
-         const stream = user.class>10 ? user.stream : null;
-
-        const subinfo= await Axios({
+       
+       let subinfo=null;
+       
+       if(StudentSubject){
+         subinfo = StudentSubject;
+        }
+        else{
+          const Class = user.class
+           const stream = user.class>10 ? user.stream : null;
+          subinfo= await Axios({
           ...SummaryAPi.getSubject,
           data: {Class , school:user.school ,stream}
-        })
+          })
+        }
          
         
-        if(subinfo.status===200){
+        if(subinfo && subinfo.status===200){
           const classes = subinfo.data.data.subjects;
           if(user.class>10){
              classes.push(user.optionalSubject);
@@ -51,23 +60,23 @@ function CreateDoubt() {
         }  
         
         
-    const totaldoubtsbystudent= await Axios({
-      ...SummaryAPi.totalStudentDoubt,
-      data:{studentId:user._id}
-    })
+    // const totaldoubtsbystudent= await Axios({
+    //   ...SummaryAPi.totalStudentDoubt,
+    //   data:{studentId:user._id}
+    // })
  
 
 
-    if(totaldoubtsbystudent.data.success){
-      settotaldoubts(totaldoubtsbystudent.data.data);
-    }
+    // if(totaldoubtsbystudent.data.success){
+    //   settotaldoubts(totaldoubtsbystudent.data.data);
+    // }
     
-     totaldoubts.forEach(e=>{
-         if(e.status==='unanswered'){
-           setpending(pending+1);
-         }
-         settotal(total+1);
-     })
+    //  totaldoubts.forEach(e=>{
+    //      if(e.status==='unanswered'){
+    //        setpending(pending+1);
+    //      }
+    //      settotal(total+1);
+    //  })
                 
      })();
   },[])

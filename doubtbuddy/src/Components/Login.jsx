@@ -57,6 +57,19 @@ function Login() {
           if (dataFetched?.role === "teacher") {
             navigate("/teacherdashboard");
           } else if (dataFetched?.role === "student") {
+              try {
+              const Class = dataFetched.class
+              const stream = dataFetched.class>10 ? dataFetched.stream : null;
+
+              const subinfo= await Axios({
+              ...SummaryAPi.getSubject,
+              data: {Class , school:dataFetched.school ,stream}
+              })
+
+              dispatch(setSubject(subinfo));
+            } catch (error) {
+              console.log(error);
+            }
             navigate("/studentdashboard");
           }
         } else {

@@ -13,6 +13,7 @@ function EditDoubt() {
   const { doubtId } = useParams();
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth).userData;
+    const StudentSubject = useSelector((state)=>state.academics).studentSubject;
   const fileInputRef = useRef(null); // 👈 ref for hidden input
 
 
@@ -25,21 +26,26 @@ function EditDoubt() {
   const [fileUploadingLoader, setFileUploadingLoader] = useState(false); // for file upload
   const [isDragging, setIsDragging] = useState(false);
   const [fileDeletingLoader,setFileDeletingLoader]=useState(false);
-
+  
   /** Fetch subjects + existing doubt details */
   useEffect(() => {
     (async () => {
       try {
-         const Class = user.class
-         const stream = user.class>10 ? user.stream : null;
-
-        const subinfo= await Axios({
+        let subinfo=null;
+       
+       if(StudentSubject){
+         subinfo = StudentSubject;
+        }
+        else{
+          const Class = user.class
+           const stream = user.class>10 ? user.stream : null;
+          subinfo= await Axios({
           ...SummaryAPi.getSubject,
           data: {Class , school:user.school ,stream}
-        })
+          })
+        }
         
-        
-        if(subinfo.status===200){
+        if(subinfo&&subinfo.status===200){
           const classes = subinfo.data.data.subjects;
           if(user.class>10){
              classes.push(user.optionalSubject);
