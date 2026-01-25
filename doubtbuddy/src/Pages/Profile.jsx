@@ -16,6 +16,7 @@ import { IoEye, IoEyeOff } from "react-icons/io5";
 function Profile() {
 
   const user = useSelector(state => state.auth).userData;
+  console.log(user)
   const role = user.role;
   const dispatch = useDispatch();
 
@@ -37,6 +38,9 @@ function Profile() {
   // ------------ TEACHER STATE -------------
   const [entries, setEntries] = useState(user.teacherClasses || []);
   const [current, setCurrent] = useState({ class: "", batch: "", subject: "" });
+
+const [availableBatches, setAvailableBatches] = useState([]);
+const [availableSubjects, setAvailableSubjects] = useState([]);
 
   // ------------ STUDENT STATE -------------
   const [studentClass] = useState(user.class || "");

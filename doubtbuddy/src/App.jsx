@@ -20,7 +20,7 @@ useEffect(() => {
     try {
       setLoading(true);
       const user = await Axios({...SummaryAPi.userDetails});
-       
+      
       if (user.data.success) {
         
         if(user.data.data.role==='student'){
@@ -34,13 +34,13 @@ useEffect(() => {
               data: {Class , school:user.data.data.school ,stream}
             })
             
-          dispatch(setSubject(subinfo));
-          dispatch(login(user.data.data));
-        } catch (error) {
-          console.log(error);
+            dispatch(setSubject(subinfo));
+          } catch (error) {
+            console.log(error);
+          }
         }
-        }
-
+        dispatch(login(user.data.data));
+        
       } else {
         dispatch(logout());
         dispatch(resetSubject());

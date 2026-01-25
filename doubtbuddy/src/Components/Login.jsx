@@ -75,6 +75,7 @@ function Login() {
             navigate("/teacherdashboard");
           } 
         } else {
+          dispatch(authLogin(dataFetched));
           navigate("/schooldashboard");
         }
       }
