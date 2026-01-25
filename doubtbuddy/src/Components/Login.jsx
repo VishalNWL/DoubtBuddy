@@ -51,25 +51,25 @@ function Login() {
 
       if (profileResponse.data.success) {
         const dataFetched = profileResponse.data.data;
-        dispatch(authLogin(dataFetched));
-
+        
         if (loginType === "user") {
           if (dataFetched?.role === "teacher") {
             navigate("/teacherdashboard");
           } else if (dataFetched?.role === "student") {
-              try {
+            try {
               const Class = dataFetched.class
               const stream = dataFetched.class>10 ? dataFetched.stream : null;
-
+              
               const subinfo= await Axios({
-              ...SummaryAPi.getSubject,
-              data: {Class , school:dataFetched.school ,stream}
+                ...SummaryAPi.getSubject,
+                data: {Class , school:dataFetched.school ,stream}
               })
-
+              
               dispatch(setSubject(subinfo));
             } catch (error) {
               console.log(error);
             }
+            dispatch(authLogin(dataFetched));
             navigate("/studentdashboard");
           }
         } else {
