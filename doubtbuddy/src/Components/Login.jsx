@@ -53,9 +53,7 @@ function Login() {
         const dataFetched = profileResponse.data.data;
         
         if (loginType === "user") {
-          if (dataFetched?.role === "teacher") {
-            navigate("/teacherdashboard");
-          } else if (dataFetched?.role === "student") {
+          if (dataFetched?.role === "student") {
             try {
               const Class = dataFetched.class
               const stream = dataFetched.class>10 ? dataFetched.stream : null;
@@ -72,6 +70,10 @@ function Login() {
             dispatch(authLogin(dataFetched));
             navigate("/studentdashboard");
           }
+          else if(dataFetched?.role === "teacher") {
+            dispatch(authLogin(dataFetched));
+            navigate("/teacherdashboard");
+          } 
         } else {
           navigate("/schooldashboard");
         }

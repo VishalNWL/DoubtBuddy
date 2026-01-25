@@ -34,8 +34,8 @@ useEffect(() => {
               data: {Class , school:user.data.data.school ,stream}
             })
             
-          dispatch(login(user.data.data));
           dispatch(setSubject(subinfo));
+          dispatch(login(user.data.data));
         } catch (error) {
           console.log(error);
         }
