@@ -22,19 +22,19 @@ useEffect(() => {
       const user = await Axios({...SummaryAPi.userDetails});
        
       if (user.data.success) {
-        dispatch(login(user.data.data));
-       
+        
         if(user.data.data.role==='student'){
-                try {
-  
-          const Class = user.data.data.class
-          const stream = user.data.data.class>10 ? user.data.data.stream : null;
-
-          const subinfo= await Axios({
-          ...SummaryAPi.getSubject,
-           data: {Class , school:user.data.data.school ,stream}
-          })
-
+          try {
+            
+            const Class = user.data.data.class
+            const stream = user.data.data.class>10 ? user.data.data.stream : null;
+            
+            const subinfo= await Axios({
+              ...SummaryAPi.getSubject,
+              data: {Class , school:user.data.data.school ,stream}
+            })
+            
+          dispatch(login(user.data.data));
           dispatch(setSubject(subinfo));
         } catch (error) {
           console.log(error);

@@ -7,6 +7,7 @@ import Axios from '../Utils/Axios';
 import SummaryAPi from '../Common/SummaryApi';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout as authLogout } from '../store/authSlice';
+import { resetSubject } from '../store/studentSlice';
 
 
 const Header = () => {
@@ -56,6 +57,7 @@ const handleLogout = async () => {
             console.log(response);
             if (response.data.success) {
                 dispatch(authLogout());
+                dispatch(resetSubject());
                 localStorage.setItem("accesstoken", "");
                 localStorage.setItem("refreshtoken", "");
                 navigate('/login')
