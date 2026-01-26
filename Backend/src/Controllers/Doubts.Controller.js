@@ -170,14 +170,15 @@ const getDoubtsBySubject_student = asyncHandler(async (req, res) => {
 
 const getDoubtsBySubject_teacher = asyncHandler(async (req, res) => {
   try {
-    const { subject, Class, batch } = req.body;
 
-    if (!subject || !Class || !batch) {
+    const { subject, Class, batch ,schoolId} = req.body;
+
+    if (!subject || !Class || !batch || !schoolId) {
       res.status(400).json(new Apiresponse(400, {}, "All fields are required"));
     }
 
     const doubts = await Doubt.find({
-      $and: [{ subject: subject, class: Class, batch: batch, status: "unanswered" }]
+      $and: [{ subject: subject, class: Class, batch: batch, status: "unanswered" ,schoolId:schoolId}]
     }).sort({ createdAt: -1 });
 
     if (!doubts) {

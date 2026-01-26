@@ -486,7 +486,7 @@ const gettingPendingTeacher=async(req,res)=>{
     return res.status(500).json(new Apiresponse(500,{},'Something went wrong'))
   }
 }
-
+ 
 const changestatus = async(req,res)=>{
   try {
     const userId = req.user;
@@ -1077,6 +1077,7 @@ try {
     $or: classFilters,
   });
 
+
   const totalAnswered = answeredDoubts.length;
 
   // Fetch unanswered doubts for this teacher's classes
@@ -1084,6 +1085,8 @@ try {
     status: "unanswered",
     $or: classFilters,
   });
+
+  
 
   const totalUnanswered = unansweredDoubts.length;
 
