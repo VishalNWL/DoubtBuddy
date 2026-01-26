@@ -36,6 +36,8 @@ function StatsPage() {
           url: `${apiConfig.url}/${user._id}`, // ✅ include id param
         });
 
+        console.log(res)
+
         if (res.data.success) {
           setStats(res.data.data);
         } else {

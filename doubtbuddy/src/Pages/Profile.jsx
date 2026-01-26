@@ -48,24 +48,28 @@ const [availableSubjects, setAvailableSubjects] = useState([]);
   const [studentStream] = useState(user.stream || "");
   const [studentOptionalSubject] = useState(user.optionalSubject || "");
 
-  useEffect(() => {
-    const fetchSchool = async () => {
-      try {
-        const res = await Axios({
-          ...SummaryAPi.getSchoolDetailsByUniqueId,
-          data: { schoolId: user.school }
-        });
+const fetchSchoolData = async () => {
+  try {
+    const res = await Axios({
+      ...SummaryAPi.getSchoolDetailsByUniqueId,
+      data: { schoolId: user.school }
+    });
 
-        if (res.data.success) {
-          setSchoolData(res.data.data.school);
-          setCoreSubjects(res.data.data.coreSubject || []);
-          setOptionalSubjects(res.data.data.school?.OptionalSubjects || []);
-        }
-      } catch { }
-    };
+    if (res.data.success) {
+      toast.success("School data loaded");
+      setSchoolData(res.data.data.school);
+      setCoreSubjects(res.data.data.coreSubject || []);
+      setOptionalSubjects(res.data.data.school?.OptionalSubjects || []);
+    }
+  } catch {
+    toast.error("Failed to load school data");
+  }
+};
 
-    fetchSchool();
-  }, []);
+useEffect(() => {
+  fetchSchoolData(); // initial load (safe)
+}, []);
+
 
   const fetchUserDetails = async () => {
     try {
@@ -165,6 +169,21 @@ const [availableSubjects, setAvailableSubjects] = useState([]);
               <Input label="Email:" defaultValue={user.email} type="email" {...register("email")} />
               <Input label="Username:" defaultValue={user.username} disabled />
               <Input label="Full Name:" defaultValue={user.fullname} disabled {...register("fullname")} />
+                     <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <Input label="School" defaultValue={user.school} disabled />
+                  </div>
+
+                  {role === "teacher" && (
+                    <button
+                      type="button"
+                      onClick={fetchSchoolData}
+                      className="h-[42px] px-3 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 transition"
+                    >
+                      Load Subjects
+                    </button>
+                  )}
+              </div>
 
               {/* -------- TEACHER -------- */}
               {role === "teacher" && (
@@ -198,7 +217,30 @@ const [availableSubjects, setAvailableSubjects] = useState([]);
 
                     <select
                       value={current.batch}
-                      onChange={e => setCurrent(prev => ({ ...prev, batch: e.target.value }))}
+                      onChange={e => {
+                          const batch = e.target.value;
+                          const selectedClass = current.class;
+
+                          setCurrent(prev => ({ ...prev, batch, subject: "" }));
+
+                          // core subjects
+                          const core = coreSubjects.find(
+                            s => String(s.class) === String(selectedClass)
+                          );
+
+                          let subs = core ? core.subjects : [];
+
+                          // optional subjects (senior classes)
+                          if (Number(selectedClass) >= 11 && core?.stream) {
+                            const opt = optionalSubjects.find(
+                              s => s.stream === core.stream
+                            );
+                            if (opt) subs = [...subs, ...opt.subjects];
+                          }
+
+                          setAvailableSubjects(subs);
+                        }}
+
                       className="border rounded px-3 py-1"
                     >
                       <option value="">Batch</option>
@@ -221,14 +263,28 @@ const [availableSubjects, setAvailableSubjects] = useState([]);
                     <Button
                       type="button"
                       onClick={() => {
-                        if (!current.class || !current.batch || !current.subject)
+                        if (!current.class || !current.batch || !current.subject) {
                           return toast.error("Fill all fields");
+                        }
+
+                        const exists = entries.some(
+                          e =>
+                            String(e.class) === String(current.class) &&
+                            String(e.batch) === String(current.batch) &&
+                            String(e.subject).toLowerCase() === String(current.subject).toLowerCase()
+                        );
+
+                        if (exists) {
+                          return toast.error("This class-batch-subject already exists");
+                        }
 
                         setEntries(prev => [...prev, current]);
                         setCurrent({ class: "", batch: "", subject: "" });
-                      }}>
+                      }}
+                    >
                       Add
                     </Button>
+
                   </div>
                 </>
               )}
@@ -276,7 +332,8 @@ const [availableSubjects, setAvailableSubjects] = useState([]);
                 </div>
               )}
 
-              <Input label="School" defaultValue={user.school} disabled />
+       
+
               {/* -------- PASSWORD UPDATE (OPTIONAL) -------- */}
               {/* -------- PASSWORD UPDATE -------- */}
               <div className="relative">

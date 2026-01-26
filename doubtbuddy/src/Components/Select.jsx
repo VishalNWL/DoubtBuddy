@@ -15,7 +15,7 @@ function Select({options,className,label,placeholder,multiple=false,...props},re
          multiple={multiple}
         >
           {
-            <option value='' disabled selected>{placeholder}</option>
+           <option value="">{placeholder}</option>
           }
          {
             options?.map((option)=>{
