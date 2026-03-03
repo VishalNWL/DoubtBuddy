@@ -50,7 +50,7 @@ const getTeachersByClass = async (req,res)=>{
            "teacherClasses.class":Class,
             status:'active'
            }
-      ).select("-password -role -teacherClasses -forget_password_expiry -forget_password_otp -answeredQuestions -updatedAt")
+      ).select("-password -role -forget_password_expiry -forget_password_otp -answeredQuestions -updatedAt")
       
 
       return res.status(200).json(new Apiresponse(200,teachers,"Teachers fetched successfully"));
@@ -112,37 +112,126 @@ const getSchoolDetailByUniqueId = async(req,res)=>{
   if(!schoolId){
       return res.status(400).json(new Apiresponse(400,{},"Provide school Id"));
    }
-
+   
    try {
-
+     
      const school = await School.findOne({schoolId:schoolId}).select("classes OptionalSubjects");
-
+     
      if(!school){
-        return res.status(400).json(new Apiresponse(400,{},"No school found"));
-     }
-
-     const schoolTrimmed = schoolId.trim();
-
-     const coreSubject = await ClassInfo.find(
+       return res.status(400).json(new Apiresponse(400,{},"No school found"));
+      }
+      
+      const schoolTrimmed = schoolId.trim();
+      
+      const coreSubject = await ClassInfo.find(
     { school:schoolTrimmed },
     { class:1, stream:1,subjects:1, _id:0 }
   ).sort({ class:1 });
-
-
-
+  
+  
+  
      return res.status(200).json(new Apiresponse(200,{coreSubject,school},"School data fetched successfully"));
-    
+     
    } catch (error) {
-      console.log(error?.message);
-      console.log(error);
-      return res.status(400).json(new Apiresponse(500,{},"Something went wrong"));
-   }
-}
+     console.log(error?.message);
+     console.log(error);
+     return res.status(400).json(new Apiresponse(500,{},"Something went wrong"));
+    }
+  }
 
+const getClassStudentTeacherCount = async (req, res) => {
+  try {
+    const schoolMongoId = req.school;
+
+    if (!schoolMongoId) {
+      return res.status(400).json(
+        new Apiresponse(400, {}, "Unauthorized request")
+      );
+    }
+
+    const school = await School.findById(schoolMongoId).select("schoolId classes");
+
+    if (!school) {
+      return res.status(404).json( 
+        new Apiresponse(404, {}, "School not found")
+      );
+    }
+
+    const schoolId = school.schoolId;
+
+    // 1️⃣ Students grouped by class
+    const studentCounts = await User.aggregate([
+      {
+        $match: {
+          school: schoolId,
+          role: "student",
+          status: "active"
+        }
+      },
+      {
+        $group: {
+          _id: "$class",
+          totalStudents: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // 2️⃣ Teachers grouped by class (from teacherClasses array)
+    const teacherCounts = await User.aggregate([
+      {
+        $match: {
+          school: schoolId,
+          role: "teacher",
+          status: "active"
+        }
+      },
+      { $unwind: "$teacherClasses" },
+      {
+        $group: {
+          _id: "$teacherClasses.class",
+          totalTeachers: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // 3️⃣ Convert to map
+    const result = {};
+
+    school.classes.forEach((cls) => {
+      result[cls.class] = {
+        totalStudents: 0,
+        totalTeachers: 0
+      };
+    });
+
+    studentCounts.forEach((item) => {
+      if (result[item._id]) {
+        result[item._id].totalStudents = item.totalStudents;
+      }
+    });
+
+    teacherCounts.forEach((item) => {
+      if (result[item._id]) {
+        result[item._id].totalTeachers = item.totalTeachers;
+      }
+    });
+
+    return res.status(200).json(
+      new Apiresponse(200, result, "All class counts fetched successfully")
+    );
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(
+      new Apiresponse(500, {}, "Something went wrong")
+    );
+  }
+};
 
 export {
     getStudentsByClass,
     getTeachersByClass,
     getUserProfileForSchool,
-    getSchoolDetailByUniqueId
+    getSchoolDetailByUniqueId,
+    getClassStudentTeacherCount
 }
