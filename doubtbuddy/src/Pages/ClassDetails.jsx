@@ -1,52 +1,51 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import Axios from "../Utils/Axios";
 import { useNavigate, useParams } from "react-router-dom";
 import SummaryAPi from "../Common/SummaryApi";
+import { useSelector } from "react-redux";
 
 export default function ClassPage() {
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const { Class ,ClassIdx} = useParams();
-  const navigate = useNavigate()
+  const [openBatch, setOpenBatch] = useState(null);
 
-  // Fetch students
+  const school = useSelector((state) => state.auth.userData);
+
+  const { Class } = useParams();
+  const navigate = useNavigate();
+
+  // ================= FETCH STUDENTS =================
   const getStudents = async () => {
     try {
       const response = await Axios({
         ...SummaryAPi.studentsBySchoolClass,
         data: { Class },
       });
+
       if (response.data.success) {
-        // Sort students by batch then fullname
-        const sorted = response.data.data.sort((a, b) => {
-          if (a.batch < b.batch) return -1;
-          if (a.batch > b.batch) return 1;
-          return a.fullname.localeCompare(b.fullname);
-        });
-        setStudents(sorted);
+        setStudents(response.data.data);
       }
     } catch (err) {
       setError("Error while fetching students");
-      console.error(err);
     }
   };
 
-  // Fetch teachers
+  // ================= FETCH TEACHERS =================
   const getTeachers = async () => {
     try {
       const response = await Axios({
         ...SummaryAPi.TeachersBySchoolClass,
         data: { Class },
       });
+
       if (response.data.success) {
         setTeachers(response.data.data);
       }
     } catch (err) {
       setError("Error while fetching teachers");
-      console.error(err);
     }
   };
 
@@ -57,74 +56,166 @@ export default function ClassPage() {
     );
   }, [Class]);
 
-  if (loading) {
-    return (
-      <div className="p-6">
-        <p className="text-gray-600">Loading class data...</p>
-      </div>
-    );
-  }
+  // ================= GET BATCHES FROM SCHOOL (SOURCE OF TRUTH) =================
+  const batches = useMemo(() => {
+    if (!school?.classes) return [];
 
-  if (error) {
-    return (
-      <div className="p-6">
-        <p className="text-red-500">{error}</p>
-      </div>
+    const classObj = school.classes.find(
+      (cls) => cls.class == Class
     );
-  }
 
+    return classObj?.batches || [];
+  }, [school, Class]);
+
+  // ================= GROUP STUDENTS =================
+  const studentsByBatch = useMemo(() => {
+    return batches.reduce((acc, batch) => {
+      acc[batch] = students.filter((s) => s.batch === batch);
+      return acc;
+    }, {});
+  }, [batches, students]);
+
+  // ================= GROUP TEACHERS =================
+  const teachersByBatch = useMemo(() => {
+    return batches.reduce((acc, batch) => {
+      acc[batch] = teachers.filter((teacher) =>
+        teacher.teacherClasses?.some(
+          (tc) => tc.class == Class && tc.batch === batch
+        )
+      );
+      return acc;
+    }, {});
+  }, [batches, teachers, Class]);
+
+  // ================= UI STATES =================
+  if (loading)
+    return <div className="p-6 text-gray-600">Loading class data...</div>;
+
+  if (error)
+    return <div className="p-6 text-red-500">{error}</div>;
+
+  // ================= MAIN UI =================
   return (
-    <div className="p-6 space-y-8">
-      {/* Teachers Section */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Teachers</h2>
-        {teachers.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {teachers.map((teacher) => (
-              <motion.div key={teacher._id} whileHover={{ scale: 1.02 }} onClick={()=>navigate(`/school-user/${teacher._id}`)}>
-                <div className="bg-white shadow-lg rounded-2xl p-4 flex items-center gap-4">
-                  <div className="h-16 w-16 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xl font-bold">
-                    {teacher.fullname?.[0]}
-                  </div>
-                  <div>
-                    <p className="text-lg font-medium">{teacher.fullname}</p>
-                    <p className="text-gray-500 text-sm">{teacher.email}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500">No teacher found for this class.</p>
-        )}
-      </section>
+    <div className="p-6 space-y-6">
+      <h1 className="text-3xl font-bold">Class {Class}</h1>
 
-      {/* Students Section */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Students</h2>
-        {students.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {students.map((student) => (
-              <motion.div key={student._id} whileHover={{ scale: 1.02 }} onClick={()=>navigate(`/school-user/${student._id}`)}>
-                <div className="bg-white shadow-md rounded-2xl p-4 flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center text-lg font-bold">
-                    {student.fullname?.[0]}
-                  </div>
-                  <div>
-                    <p className="font-medium">{student.fullname}</p>
-                    <p className="text-sm text-gray-500">{student.email}</p>
-                    <p className="text-sm text-gray-500">
-                      Batch: {student.batch}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+      {batches.length === 0 && (
+        <p className="text-gray-500">No batches configured for this class.</p>
+      )}
+
+      {batches.map((batch) => (
+        <div key={batch} className="bg-white rounded-2xl shadow-md">
+
+          {/* ===== Batch Tile ===== */}
+          <div
+            onClick={() =>
+              setOpenBatch(openBatch === batch ? null : batch)
+            }
+            className="cursor-pointer p-5 flex justify-between items-center"
+          >
+            <div>
+              <h2 className="text-xl font-semibold">
+                Batch {batch}
+              </h2>
+              <p className="text-sm text-gray-500">
+                {studentsByBatch[batch]?.length || 0} Students •{" "}
+                {teachersByBatch[batch]?.length || 0} Teachers
+              </p>
+            </div>
+
+            <span className="text-lg font-bold">
+              {openBatch === batch ? "▲" : "▼"}
+            </span>
           </div>
-        ) : (
-          <p className="text-gray-500">No students found for this class.</p>
-        )}
-      </section>
+
+          {/* ===== Dropdown ===== */}
+          {openBatch === batch && (
+            <div className="border-t p-5 space-y-8">
+
+              {/* ===== Teachers Section ===== */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">
+                  Teachers
+                </h3>
+
+                {teachersByBatch[batch]?.length > 0 ? (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {teachersByBatch[batch].map((teacher) => (
+                      <motion.div
+                        key={teacher._id}
+                        whileHover={{ scale: 1.03 }}
+                        onClick={() =>
+                          navigate(`/school-user/${teacher._id}`)
+                        }
+                        className="cursor-pointer"
+                      >
+                        <div className="bg-blue-50 rounded-xl p-4 flex gap-4 items-center">
+                          <div className="h-12 w-12 rounded-full bg-blue-200 flex items-center justify-center font-bold">
+                            {teacher.fullname?.[0]}
+                          </div>
+                          <div>
+                            <p className="font-medium">
+                              {teacher.fullname}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {teacher.email}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-sm">
+                    No teachers assigned to this batch.
+                  </p>
+                )}
+              </div>
+
+              {/* ===== Students Section ===== */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">
+                  Students
+                </h3>
+
+                {studentsByBatch[batch]?.length > 0 ? (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {studentsByBatch[batch].map((student) => (
+                      <motion.div
+                        key={student._id}
+                        whileHover={{ scale: 1.03 }}
+                        onClick={() =>
+                          navigate(`/school-user/${student._id}`)
+                        }
+                        className="cursor-pointer"
+                      >
+                        <div className="bg-gray-100 rounded-xl p-4 flex gap-4 items-center">
+                          <div className="h-12 w-12 rounded-full bg-gray-300 flex items-center justify-center font-bold">
+                            {student.fullname?.[0]}
+                          </div>
+                          <div>
+                            <p className="font-medium">
+                              {student.fullname}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {student.email}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-sm">
+                    No students in this batch.
+                  </p>
+                )}
+              </div>
+
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

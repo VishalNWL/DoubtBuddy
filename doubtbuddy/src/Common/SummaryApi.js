@@ -177,6 +177,11 @@ getUserProfileForSchool:{
 getSchoolDetailsByUniqueId:{
     url:'/api/v1/school/schoolInfo',
     method:'post'
+},
+
+classTotalStudentTeacher:{
+      url:'/api/v1/school/student-teacher-count',
+      method:'post'
 }
 
 

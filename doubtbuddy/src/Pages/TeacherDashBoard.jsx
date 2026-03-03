@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import Axios from '../Utils/Axios.js';
 import SummaryAPi from '../Common/SummaryApi.js';
 import NoData from '../Components/ui/Nodata.jsx';
+import { ClipLoader } from "react-spinners";
 
 dayjs.extend(relativeTime);
 
@@ -24,6 +25,7 @@ function TeacherDashBoard() {
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedBatch, setSelectedBatch] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [loading , setLoading] = useState(false);
 
 
   const fetchData = async () => {
@@ -61,6 +63,7 @@ function TeacherDashBoard() {
 
   const finddoubt = async (data) => {
     try {
+      setLoading(true);
       const response = await Axios({
         ...SummaryAPi.subjectTeacherDoubt,
         data: {
@@ -76,6 +79,9 @@ function TeacherDashBoard() {
       }
     } catch (error) {
       seterror(error.message);
+    }
+    finally{
+      setLoading(false);
     }
   }
 
@@ -192,11 +198,15 @@ function TeacherDashBoard() {
           </div>
         ))}
 
-        {
-          alldoubt.length === 0 &&
+       { !loading ?
+          (alldoubt.length === 0 &&
           <div className='mt-10'>
             <NoData />
-          </div>
+          </div>):(
+            <div className='mt-20'>
+              <ClipLoader/>
+            </div>
+          )
         }
       </div>
     </>

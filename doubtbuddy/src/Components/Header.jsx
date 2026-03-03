@@ -19,6 +19,8 @@ const Header = () => {
    
   const navLinks = [
     { href: '/', label: 'Home' },
+    { href: '/help', label: 'Help' },
+    { href: '/privacy-policy', label: 'Policy' },
 ];
 
 if (user?.role === 'admin') {

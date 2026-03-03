@@ -29,6 +29,8 @@ import SchoolProfile from './Pages/SchoolProfile.jsx'
 import SchoolStatsPage from './Pages/SchoolStatistics.jsx'
 import ClassDetails from './Pages/ClassDetails.jsx'
 import StudentTeacherForSchool from './Pages/StudentTeacherOfSchool.jsx'
+import HelpPage from './Pages/HelpPage.jsx'
+import PrivacyPolicy from './Pages/PrivacyPolicy.jsx'
 
 
 const router = createBrowserRouter([
@@ -48,6 +50,19 @@ const router = createBrowserRouter([
                 </AuthLayout>
             ),
         },
+        {
+              path:"/help",
+              element:(
+                  <HelpPage/>
+              )
+        },
+        {
+              path:"/privacy-policy",
+              element:(
+                  <PrivacyPolicy/>
+              )
+        },
+
         {
             path: "/teacherdashboard",
             element: (
