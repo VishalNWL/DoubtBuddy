@@ -56,7 +56,7 @@ const fetchSchoolData = async () => {
     });
 
     if (res.data.success) {
-      toast.success("School data loaded");
+      // toast.success("School data loaded");
       setSchoolData(res.data.data.school);
       setCoreSubjects(res.data.data.coreSubject || []);
       setOptionalSubjects(res.data.data.school?.OptionalSubjects || []);

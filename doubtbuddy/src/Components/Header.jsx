@@ -74,7 +74,7 @@ const handleLogout = async () => {
 
     return (
        user && <header className="bg-blue-600 text-white px-8 py-4 flex items-center justify-between">
-            <Link to={''} className="m-0 text-2xl font-bold tracking-wider">DoubtBuddy</Link>
+            <Link to={''} className="m-0 text-2xl font-bold tracking-wider">SchoolWhale</Link>
             {/* Desktop Nav */}
             <nav className="hidden md:block">
                 <ul className="flex gap-6 m-0 p-0 list-none">

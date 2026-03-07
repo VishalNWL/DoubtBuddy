@@ -56,10 +56,10 @@ export default function HelpPage() {
         {/* Contact */}
         <div className="mt-10 p-5 bg-indigo-50 rounded-lg">
           <h3 className="font-semibold text-indigo-700 mb-2">
-            Need Further Assistance?
+            For any query or further assistance
           </h3>
           <p className="text-gray-700">
-            Email us at: <span className="font-medium">support@yourplatform.com</span>
+            Email us at: <span className="font-medium">vishalnemiwal22@gmail.com</span>
           </p>
         </div>
       </div>
