@@ -1,6 +1,7 @@
 import { ClassInfo } from "../Models/ClassInfo.model.js";
 import School from "../Models/School.model.js";
 import { User } from "../Models/user.model.js";
+import { Upload } from "../Models/Upload.model.js";
 import { Apiresponse } from "../Utils/Apiresponse.js";
 
 const getStudentsByClass = async (req,res)=>{
@@ -228,10 +229,86 @@ const getClassStudentTeacherCount = async (req, res) => {
   }
 };
 
+
+const getBatchStudentForTeacher = async (req,res)=>{
+  try {
+    const userId= req.user._id;
+    const {class:Class , batch} = req.body;
+
+    const teacher = await User.findById(userId);
+    if(!teacher){
+       return res.status(400).json(new Apiresponse(400,{},"Unauthorized request"));
+    }
+
+    if(!Class || !batch){
+      return res.status(400).json(new Apiresponse(400,{},"Provide class and batch"));
+    }
+
+    const students = await User.find({school:teacher.school , class:Class , batch:batch , role:'student' , status:'active'})
+    .select("-password -role -teacherClasses -forget_password_expiry -forget_password_otp -answeredQuestions -updatedAt")
+    .sort({fullname:1});
+
+    return res.status(200).json(new Apiresponse(200,students,"Students fetched successfully"));
+
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(new Apiresponse(500,{},"Something went wrong"));
+  }
+}
+
+const getTeachersForStudent = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const student = await User.findById(userId);
+    if (!student || student.role !== 'student') {
+      return res.status(400).json(new Apiresponse(400, {}, "Unauthorized request"));
+    }
+
+    const teachers = await User.find({
+      school: student.school,
+      role: 'teacher',
+      status: 'active'
+    }).select("-password -role -forget_password_expiry -forget_password_otp -answeredQuestions -updatedAt");
+
+    return res.status(200).json(new Apiresponse(200, teachers, "Teachers fetched successfully"));
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(new Apiresponse(500, {}, "Something went wrong"));
+  }
+}
+
+const getUploadsForStudentFromTeacher = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { teacherId } = req.params;
+    const student = await User.findById(userId);
+    if (!student || student.role !== 'student') {
+      return res.status(400).json(new Apiresponse(400, {}, "Unauthorized request"));
+    }
+
+    const uploads = await Upload.find({
+      uploader: teacherId,
+      $or: [
+        { type: 'batch', class: student.class, batch: student.batch },
+        { type: 'individual', student: userId }
+      ]
+    }).sort({ createdAt: -1 });
+
+    return res.status(200).json(new Apiresponse(200, uploads, "Uploads fetched successfully"));
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(new Apiresponse(500, {}, "Something went wrong"));
+  }
+}
+
 export {
     getStudentsByClass,
     getTeachersByClass,
     getUserProfileForSchool,
     getSchoolDetailByUniqueId,
-    getClassStudentTeacherCount
+    getClassStudentTeacherCount,
+    getBatchStudentForTeacher,
+    getTeachersForStudent,
+    getUploadsForStudentFromTeacher
 }

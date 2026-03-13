@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getStudentsByClass, getTeachersByClass, getUserProfileForSchool,getSchoolDetailByUniqueId, getClassStudentTeacherCount } from "../Controllers/School.Controller.js";
+import { getStudentsByClass, getTeachersByClass, getUserProfileForSchool,getSchoolDetailByUniqueId, getClassStudentTeacherCount, getBatchStudentForTeacher, getTeachersForStudent, getUploadsForStudentFromTeacher } from "../Controllers/School.Controller.js";
 import { jwtverify } from "../Middlewares/auth.middleware.js";
 
 
@@ -26,6 +26,18 @@ router
  router
  .route('/student-teacher-count')
  .post(jwtverify,getClassStudentTeacherCount)
+
+ router
+ .route('/batch-students')
+ .post(jwtverify,getBatchStudentForTeacher)
+
+ router
+ .route('/teachers-for-student')
+ .get(jwtverify, getTeachersForStudent)
+
+ router
+ .route('/uploads-from-teacher/:teacherId')
+ .get(jwtverify, getUploadsForStudentFromTeacher)
 
 
 

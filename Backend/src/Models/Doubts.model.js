@@ -17,8 +17,7 @@ const doubtSchema = new Schema({
   },
    schoolId: {
       type: String,
-      required: true,
-      unique: true
+      required: true
     },
 
   questionFile: {
