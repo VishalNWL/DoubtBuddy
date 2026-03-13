@@ -67,7 +67,7 @@ const fetchSchoolData = async () => {
 };
 
 useEffect(() => {
-  fetchSchoolData(); // initial load (safe)
+  fetchSchoolData(); //initial load (safe)
 }, []);
 
 

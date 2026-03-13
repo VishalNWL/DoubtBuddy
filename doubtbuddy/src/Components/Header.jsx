@@ -18,9 +18,7 @@ const Header = () => {
 
    
   const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/help', label: 'Help' },
-    { href: '/privacy-policy', label: 'Policy' },
+    { href: '/', label: 'Home' }
 ];
 
 if (user?.role === 'admin') {
@@ -33,9 +31,11 @@ if (user?.role === 'student') {
    
     navLinks.push( { href: '/profile', label: 'Profile' });
     navLinks.push({ href: '/statistics', label: 'Statistics' })
+    navLinks.push({ href: '/teachers', label: 'MY Teachers' })
 }
 
 if(user?.role==='teacher'){
+    navLinks.push({ href: '/my-students', label: 'MY Students' });
     navLinks.push({ href: '/allowStudent', label: 'Register Student' });
     navLinks.push( { href: '/profile', label: 'Profile' });
     navLinks.push({ href: '/statistics', label: 'Statistics' })
@@ -45,9 +45,14 @@ if(user?.schoolName){
     navLinks.push( { href: '/profile-school', label: 'Profile' });
     navLinks.push({href:'/addsubject', label:'Add Subject'});
     navLinks.push({ href: '/allowTeacher', label: 'Register Teacher' });
-    navLinks.push({ href: '/statistics-school', label: 'Statistics' })
+    navLinks.push({ href: '/statistics-school', label: 'Statistics' });
 }
 
+
+navLinks.push(
+     { href: '/help', label: 'Help' },
+    { href: '/privacy-policy', label: 'Policy' },
+)
 
 const handleLogout = async () => {
     try {

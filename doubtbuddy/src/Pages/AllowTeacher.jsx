@@ -78,7 +78,7 @@ function AllowTeacher() {
         openModal && selectedUser && (
           <div className='fixed inset-0 bg-black/50 flex justify-center items-center z-50'>
 
-            <div className='bg-white rounded-2xl p-6 w-[90%] max-w-lg shadow-xl relative'>
+          <div className='bg-white rounded-2xl p-6 w-[90%] max-w-lg max-h-[80vh] overflow-y-auto shadow-xl relative'>
 
               {/* Close Button */}
               <button 
@@ -102,7 +102,7 @@ function AllowTeacher() {
                 <p><b>Created:</b> {new Date(selectedUser.createdAt).toLocaleString()}</p>
               </div>
 
-              <div className='mt-4'>
+              <div className='mt-4 max-h-60 overflow-y-auto pr-2'>
   <h3 className='font-semibold text-lg mb-2'>Applied Classes</h3>
 
   {selectedUser?.teacherClasses?.length > 0 ? (

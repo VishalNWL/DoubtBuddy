@@ -170,6 +170,11 @@ TeachersBySchoolClass:{
     method:'post'
 },
 
+BatchStudentsForTeacher:{
+    url:'/api/v1/school/batch-students',
+    method:'post'
+},
+
 getUserProfileForSchool:{
     url:'/api/v1/school/profile',
     method:'get'
@@ -182,6 +187,32 @@ getSchoolDetailsByUniqueId:{
 classTotalStudentTeacher:{
       url:'/api/v1/school/student-teacher-count',
       method:'post'
+},
+
+uploadFile:{
+    url:'/api/file/file',
+    method:'post'
+},
+getUploadsForStudent:{
+    url:'/api/file/student',
+    method:'get'
+},
+getUploadsForBatch:{
+    url:'/api/file/batch',
+    method:'get'
+},
+deleteUpload:{
+    url:'/api/file',
+    method:'delete'
+}, 
+
+teachersForStudent:{
+    url:'/api/v1/school/teachers-for-student',
+    method:'get'
+},
+uploadsFromTeacher:{
+    url:'/api/v1/school/uploads-from-teacher',
+    method:'get'
 }
 
 

@@ -31,6 +31,10 @@ import ClassDetails from './Pages/ClassDetails.jsx'
 import StudentTeacherForSchool from './Pages/StudentTeacherOfSchool.jsx'
 import HelpPage from './Pages/HelpPage.jsx'
 import PrivacyPolicy from './Pages/PrivacyPolicy.jsx'
+import MyStudents from './Pages/MyStudents.jsx'
+import MYBatchStudents from './Pages/MYBatchStudents.jsx'
+import Teachers from './Pages/Teachers.jsx'
+import TeacherUploads from './Pages/TeacherUploads.jsx'
 
 
 const router = createBrowserRouter([
@@ -87,6 +91,17 @@ const router = createBrowserRouter([
                 </AuthLayout>
             )
         },
+
+         {
+             path:'/my-students',
+             element:(
+                 <AuthLayout authentication={true}>
+                     <MyStudents/>
+                 </AuthLayout>
+             )
+
+         },
+        
 
         {
             path: "/solvedoubt/:id/:idt",
@@ -203,6 +218,26 @@ const router = createBrowserRouter([
         {
             path:'/school-user/:userId',
             element:<StudentTeacherForSchool/>
+        },
+        {
+            path:'/my-batch-students/:class/:batch',
+            element:<MYBatchStudents/>
+        },
+        {
+            path:'/teachers',
+            element:(
+                <AuthLayout authentication={true}>
+                    <Teachers/>
+                </AuthLayout>
+            )
+        },
+        {
+            path:'/teacher-uploads/:teacherId',
+            element:(
+                <AuthLayout authentication={true}>
+                    <TeacherUploads/>
+                </AuthLayout>
+            )
         }
     ],
 },
