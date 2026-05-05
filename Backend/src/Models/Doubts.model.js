@@ -70,4 +70,12 @@ const doubtSchema = new Schema({
   
 },{timestamps:true});
 
+// Indexes for better query performance
+doubtSchema.index({ schoolId: 1 });
+doubtSchema.index({ askedBy: 1 });
+doubtSchema.index({ subject: 1 });
+doubtSchema.index({ class: 1 });
+doubtSchema.index({ batch: 1 });
+doubtSchema.index({ status: 1 });
+
 export const Doubt = mongoose.model('Doubt', doubtSchema);

@@ -11,7 +11,8 @@ const schoolSchema = new Schema(
     },
     email: {
       type: String,
-      required: true
+      required: true,
+      index: true
     },
     address: {
       type: String,

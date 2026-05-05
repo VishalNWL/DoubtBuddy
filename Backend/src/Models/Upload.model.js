@@ -38,4 +38,10 @@ const uploadSchema = new Schema({
   }
 }, { timestamps: true });
 
+// Indexes for better query performance
+uploadSchema.index({ uploader: 1 });
+uploadSchema.index({ student: 1 });
+uploadSchema.index({ class: 1 });
+uploadSchema.index({ batch: 1 });
+
 export const Upload = mongoose.model('Upload', uploadSchema);

@@ -14,4 +14,8 @@ const classInfoSchema = new mongoose.Schema({
   OptionalSubjects: [{ type: String}]
 });
 
+// Indexes for better query performance
+classInfoSchema.index({ school: 1 });
+classInfoSchema.index({ class: 1 });
+
 export const ClassInfo = mongoose.model("ClassInfo", classInfoSchema);
