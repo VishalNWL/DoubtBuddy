@@ -88,7 +88,9 @@ useEffect(() => {
       }
     } catch (err) {
       console.log(err)
-      setError(err.response.data.message || "Something went wrong");
+      const errorMessage = err.response?.data?.message || err.message || "Something went wrong";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

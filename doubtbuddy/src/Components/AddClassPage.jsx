@@ -283,6 +283,29 @@ function AddClassPage({ close, onSave, initialData = null }) {
             </select>
           </div>
 
+          {/* Compact Added Classes Preview for Senior Classes */}
+          {classInfo.length > 0 && (
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg border">
+              <h4 className="text-sm font-medium text-blue-800 mb-2">Added Classes Overview:</h4>
+              <div className="flex flex-wrap gap-2">
+                {classInfo.map((el, idx) => (
+                  <div
+                    key={idx}
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full border border-blue-200"
+                  >
+                    <span>{el.class}th — {el.batch}</span>
+                    <button
+                      onClick={() => removeValue(idx)}
+                      className="ml-1 text-blue-600 hover:text-blue-800 font-bold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Higher Classes */}
           <div className="mt-6 p-4 rounded-xl border bg-gray-50">
             <h3 className="font-semibold text-gray-800">Add Senior School Classes (11–12)</h3>

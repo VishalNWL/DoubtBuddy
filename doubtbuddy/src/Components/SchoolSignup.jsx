@@ -33,12 +33,12 @@ function SchoolSignup() {
     
    if (!indianPinRegex.test(data.pincode)) {
     setError("Please enter a valid 6-digit Indian PIN code");
-    alert("Enter valid Indian Pincode");
+    toast.error("Please enter a valid 6-digit Indian PIN code");
     return;
   }
 
 if (!schoolClassData || !Array.isArray(schoolClassData.classes) || schoolClassData.classes.length === 0) {
-    alert("Add the classes for the school");
+    toast.error("Add the classes for the school");
   return ;
 }
 
@@ -59,7 +59,9 @@ if (!schoolClassData || !Array.isArray(schoolClassData.classes) || schoolClassDa
       if(err?.response?.data?.message){
          alert(err?.response?.data?.message);
       }
-      setError(err?.response?.data?.message||err.message || "Something went wrong");
+      const errorMessage = err?.response?.data?.message||err.message || "Something went wrong";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

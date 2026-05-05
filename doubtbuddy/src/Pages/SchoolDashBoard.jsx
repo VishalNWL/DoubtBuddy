@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import Axios from "../Utils/Axios";
-import SummaryAPi from "../Common/SummaryApi";
 
 const COLORS = [
   "from-gray-100 to-gray-300",
@@ -19,38 +17,9 @@ function SchoolDashBoard() {
   const school = useSelector((state) => state.auth.userData);
   const navigate = useNavigate();
 
-  const [classCounts, setClassCounts] = useState({});
-  const [loadingCounts, setLoadingCounts] = useState(false);
-
   const handleCardClick = (cls, index) => {
     navigate(`/class-details/${cls.class}/${index}`);
   };
-
-  // 🔥 Single API call to fetch all class counts
-  useEffect(() => {
-    const fetchCounts = async () => {
-      if (!school?.classes?.length) return;
-
-      setLoadingCounts(true);
-
-      try {
-        const res = await Axios({
-          ...SummaryAPi.classTotalStudentTeacher
-          // ❗ No data needed now (backend should use req.school)
-        });
-
-        if (res.data.success) {
-          setClassCounts(res.data.data || {});
-        }
-      } catch (err) {
-        console.error("Error fetching class counts", err);
-      } finally {
-        setLoadingCounts(false);
-      }
-    };
-
-    fetchCounts();
-  }, [school]);
 
   if (!school?.classes?.length) {
     return (
@@ -72,7 +41,6 @@ function SchoolDashBoard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {school.classes.map((cls, index) => {
-          const counts = classCounts[cls.class] || {};
 
           return (
             <div
@@ -90,17 +58,6 @@ function SchoolDashBoard() {
 
               <div className="relative z-10 space-y-2">
                 <div>Class {cls.class}</div>
-
-                {loadingCounts ? (
-                  <div className="text-sm font-normal text-gray-600">
-                    Loading...
-                  </div>
-                ) : (
-                  <div className="text-sm font-normal text-gray-700">
-                    {counts.totalStudents ?? 0} Students •{" "}
-                    {counts.totalTeachers ?? 0} Teachers
-                  </div>
-                )}
               </div>
             </div>
           );

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login as authLogin } from "../store/authSlice";
+import { setSubject } from "../store/studentSlice";
 import { Button, Input, Logo } from "./index.js";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
@@ -82,6 +83,7 @@ function Login() {
     } else {
       // 👇 if backend responds with success=false
       setError(session.data.message || "Invalid credentials");
+      toast.error(session.data.message || "Invalid credentials");
     }
   } catch (err) {
     console.error("Login error:", err);
@@ -91,6 +93,7 @@ function Login() {
       err.response?.data?.message || err.message || "Something went wrong";
 
     setError(backendMessage);
+    toast.error(backendMessage);
   } finally {
     setLoading(false);
   }
