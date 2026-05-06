@@ -53,10 +53,13 @@ function SchoolStatsPage() {
   if (loading) return <p className="text-center mt-6">Loading...</p>;
   if (!stats) return <p className="text-center mt-6">No stats available</p>;
 
-  const classWiseData = stats.classWise;
-  const avgDoubts = (stats.totalDoubts / classWiseData.length).toFixed(2);
-  const maxClass = classWiseData.reduce((max, c) =>
-    c.total > max.total ? c : max
+  const classWiseData = stats.classWise || [];
+  const avgDoubts = classWiseData.length
+    ? (stats.totalDoubts / classWiseData.length).toFixed(2)
+    : "0.00";
+  const maxClass = classWiseData.reduce(
+    (max, c) => (c.total > max.total ? c : max),
+    { total: 0, class: "-" }
   );
 
   return (
