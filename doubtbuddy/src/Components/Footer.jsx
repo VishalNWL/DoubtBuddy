@@ -28,8 +28,8 @@ function Footer() {
         </div>
 
         {/* Advertisement Space */}
-        <div className="flex justify-center items-center border border-dashed border-gray-300 rounded-lg h-32 w-full text-gray-300 hover:border-gray-400 transition">
-          <span className="text-sm">Ad Space (Your Ad Here)</span>
+        <div className="flex justify-center items-center  border-gray-300 rounded-lg h-32 w-full text-gray-300 hover:border-gray-400 transition">
+          <span className="text-sm"></span>
         </div>
 
         {/* Social Links */}
