@@ -52,19 +52,7 @@ function TeacherUploads() {
     }
   }
 
-  const handleDelete = async (uploadId) => {
-    if (!confirm('Are you sure you want to delete this upload?')) return
 
-    try {
-      await Axios({
-        ...SummaryAPi.deleteUpload,
-        url: `${SummaryAPi.deleteUpload.url}/${uploadId}`
-      })
-      setUploads(uploads.filter(u => u._id !== uploadId))
-    } catch (err) {
-      alert('Failed to delete upload')
-    }
-  }
 
   return (
     <div className="p-4 md:p-8">
@@ -107,12 +95,6 @@ function TeacherUploads() {
                   className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
                 >
                   Download
-                </button>
-                <button
-                  onClick={() => handleDelete(upload._id)}
-                  className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
-                >
-                  Delete
                 </button>
               </div>
             </div>
