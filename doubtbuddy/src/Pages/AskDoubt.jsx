@@ -52,7 +52,7 @@ function CreateDoubt() {
          
         
         if(subinfo && subinfo.status===200){
-          const classes = subinfo.data.data.subjects;
+          const classes = [...subinfo.data.data.subjects];
           if(user.class>10){
              classes.push(user.optionalSubject);
           }
