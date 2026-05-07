@@ -31,27 +31,37 @@ function EditDoubt() {
   useEffect(() => {
     (async () => {
       try {
-        let subinfo=null;
-       
-       if(StudentSubject){
-         subinfo = StudentSubject;
+        if (!user) return;
+
+        let subinfo = null;
+
+        if (StudentSubject) {
+          subinfo = StudentSubject;
+        } else {
+          const Class = user.class;
+          const stream = user.class > 10 ? user.stream : null;
+          subinfo = await Axios({
+            ...SummaryAPi.getSubject,
+            data: { Class, school: user.school, stream },
+          });
         }
-        else{
-          const Class = user.class
-           const stream = user.class>10 ? user.stream : null;
-          subinfo= await Axios({
-          ...SummaryAPi.getSubject,
-          data: {Class , school:user.school ,stream}
-          })
-        }
-        
-        if(subinfo&&subinfo.status===200){
-          const classes = subinfo.data.data.subjects;
-          if(user.class>10){
-             classes.push(user.optionalSubject);
+
+        if (subinfo) {
+          let classes = [];
+
+          if (Array.isArray(subinfo)) {
+            classes = [...subinfo];
+          } else if (subinfo.status === 200) {
+            classes = Array.isArray(subinfo.data?.data?.subjects)
+              ? [...subinfo.data.data.subjects]
+              : [];
+          }
+
+          if (user.class > 10 && user.optionalSubject) {
+            classes.push(user.optionalSubject);
           }
           setSubjectOptions(classes);
-        }  
+        }
 
         const doubtRes = await Axios({
           ...SummaryApi.doubtbyId,
@@ -63,14 +73,14 @@ function EditDoubt() {
           setSubject(d.subject || "");
           setTitle(d.title || "");
           setDescription(d.questionDescription || "");
-          setUploadFileURL(d.questionFile || "");
+          setUploadFileURL(d.questionFile || d.questionPhoto || "");
         }
       } catch (err) {
         console.error(err);
         toast.error("Failed to load doubt details");
       }
     })();
-  }, [doubtId, user.class]);
+  }, [doubtId, user, StudentSubject]);
 
   /** File Upload Handler */
   const handleFileUpload = useCallback(async (file) => {
@@ -136,7 +146,7 @@ function EditDoubt() {
       subject,
       title,
       questionDescription: description,
-      questionPhoto: uploadFileURL, // final file url (old/new)
+      questionFile: uploadFileURL,
     };
 
     try {
